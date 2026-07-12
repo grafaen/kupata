@@ -1,8 +1,10 @@
-import { WORLD, ZONES, ZEBRA, BARK, COLORS } from './config.js';
+import { WORLD, ZONES, ZEBRA, BARK, KIDS, COLORS } from './config.js';
+import { drawHud } from './systems/hud.js';
+import { STRINGS } from './systems/strings.js';
 
 // Полная перерисовка поля каждый кадр. Слои строго в порядке:
 // фон (море, набережная, декор) → тротуары → дорога → разметка → зебра →
-// машины → Купата → эффекты (кольца лая).
+// машины → дети → Купата → эффекты (кольца лая, «БИИП!») → HUD.
 // state может быть null (до старта игры) — тогда рисуем только поле.
 export function render(ctx, state) {
   const width = WORLD.width;
@@ -18,8 +20,61 @@ export function render(ctx, state) {
   for (const car of state.cars) {
     drawEntity(ctx, car, car.color);
   }
+  drawKidGroups(ctx, state);
   drawEntity(ctx, state.dog, COLORS.dog);
   drawBarkRings(ctx, state.barkRings);
+  drawHonks(ctx, state.cars);
+  drawHud(ctx, state);
+}
+
+// Дети: ожидающие слегка «машут» (покачивание), над waiting-группой — кружок
+// терпения: дуга тает по часовой, к концу краснеет.
+function drawKidGroups(ctx, state) {
+  for (const group of state.kidGroups) {
+    group.kids.forEach((kid, i) => {
+      const bob = group.state === 'waiting'
+        ? Math.sin(state.time * 6 + i * 1.3) * 2
+        : 0;
+      ctx.fillStyle = kid.color;
+      ctx.fillRect(kid.x - kid.w / 2, kid.y - kid.h / 2 + bob, kid.w, kid.h);
+    });
+
+    if (group.state === 'waiting') drawPatienceRing(ctx, group);
+  }
+}
+
+function drawPatienceRing(ctx, group) {
+  const { kids } = group;
+  const cx = kids.reduce((sum, kid) => sum + kid.x, 0) / kids.length;
+  const cy = kids[0].y - KIDS.h / 2 - KIDS.patienceRadius - 8;
+  const frac = group.patience / group.patienceMax;
+
+  ctx.save();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, KIDS.patienceRadius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = frac < 0.3 ? '#e63946' : '#43aa8b';
+  ctx.beginPath();
+  ctx.arc(cx, cy, KIDS.patienceRadius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// «БИИП!» над испуганной машиной, пока тикает honkTimer (звук — M4).
+function drawHonks(ctx, cars) {
+  ctx.save();
+  ctx.font = 'bold 16px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillStyle = '#ffd166';
+  for (const car of cars) {
+    if (car.honkTimer <= 0) continue;
+    ctx.fillText(STRINGS.fx.honk, car.x, car.y - car.h / 2 - 4);
+  }
+  ctx.restore();
 }
 
 // Кольцо лая: расширяется ровно до радиуса действия и тает.

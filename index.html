@@ -8,6 +8,18 @@
 </head>
 <body>
   <canvas id="game" width="960" height="640"></canvas>
+
+  <!-- Экран game over; тексты заполняет main.js из strings.js (задел под i18n M5). -->
+  <div id="gameover" class="overlay hidden">
+    <div class="card">
+      <h1 id="go-title"></h1>
+      <p id="go-score" class="card-score"></p>
+      <p id="go-best"></p>
+      <p id="go-kids"></p>
+      <button id="go-again" type="button"></button>
+    </div>
+  </div>
+
   <script type="module" src="src/main.js"></script>
 </body>
 </html>
