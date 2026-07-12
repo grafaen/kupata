@@ -1,7 +1,9 @@
 import {
-  LANES, CAR, BARK, KIDS, WAVES, SCORE, GAME, ENERGY, OVERFEED, NPC,
+  LANES, CAR, BARK, KIDS, WAVES, SCORE, GAME, ENERGY, OVERFEED, NPC, DOG,
 } from './config.js';
-import { createDog, updateDog, tryBark, barkRadius } from './entities/dog.js';
+import {
+  createDog, updateDog, tryBark, barkRadius, clampDogPosition,
+} from './entities/dog.js';
 import {
   createCar, updateCars, tryStopByBark, isCarInRadius, isCarGone, canSpawnInLane,
   isCarThreat, isCarScare, scareBrake, holdStoppedCars, pickCarType,
@@ -34,6 +36,7 @@ export function createGame() {
     comboStreak: 0, // успешных переходов подряд; ≥ порога → множитель очков
     kidsCrossedTotal: 0,
     toast: null, // { kind: 'wave' | 'stuffed', wave?, age, duration }
+    events: [], // звуковые события кадра: { type, … } — main.js передаёт в audio
     time: 0,
   };
 }
@@ -80,8 +83,10 @@ export function update(state, input, dt) {
     for (const group of state.kidGroups) {
       if (group.state === 'waiting') group.honked = true;
     }
+    state.events.push({ type: 'honk' });
   }
   updateCars(state.cars, obstaclesFor(state), dt);
+  handleDogCarContact(state);
 
   state.cars = state.cars.filter((car) => !isCarGone(car));
   state.kidGroups = state.kidGroups.filter((group) => !isGroupExpired(group));
@@ -97,11 +102,45 @@ function handleBark(state, input) {
   if (!tryBark(dog)) return;
 
   state.barkRings.push({ x: dog.x, y: dog.y, age: 0, radius });
+  state.events.push({ type: 'bark', weak: radius < BARK.radius });
 
   for (const car of state.cars) {
     if (isCarInRadius(car, dog.x, dog.y, radius)) {
       tryStopByBark(car);
     }
+  }
+}
+
+// Контакт Купаты с машиной (после updateCars — по финальным позициям кадра).
+// Движущаяся машина «наезжает»: экстренно тормозит с «БИИП!», Купату
+// отбрасывает и оглушает («Ой!», лапки не тратятся — game-design §3.1);
+// стоящая — просто твёрдая: внутрь не зайти.
+function handleDogCarContact(state) {
+  const { dog } = state;
+
+  for (const car of state.cars) {
+    const overlapX = (dog.w + car.w) / 2 - Math.abs(dog.x - car.x);
+    const overlapY = (dog.h + car.h) / 2 - Math.abs(dog.y - car.y);
+    if (overlapX <= 0 || overlapY <= 0) continue;
+
+    // Выталкиваем по оси наименьшего проникновения.
+    let pushX = 0;
+    let pushY = 0;
+    if (overlapX < overlapY) pushX = dog.x < car.x ? -overlapX : overlapX;
+    else pushY = dog.y < car.y ? -overlapY : overlapY;
+
+    const hit = car.speed > DOG.contactSpeed && dog.stunTimer <= 0;
+    if (hit) {
+      pushX += Math.sign(pushX) * DOG.knockback;
+      pushY += Math.sign(pushY) * DOG.knockback;
+      dog.stunTimer = DOG.stunDuration;
+      scareBrake(car);
+      state.events.push({ type: 'honk' });
+    }
+
+    dog.x += pushX;
+    dog.y += pushY;
+    clampDogPosition(dog);
   }
 }
 
@@ -135,6 +174,7 @@ function eatKhachapuri(state) {
   state.score += SCORE.khachapuri;
   state.khachapuriEaten += 1;
   state.hearts.push({ x: npc.x, y: npc.y - npc.h / 2 - 8, age: 0 });
+  state.events.push({ type: 'nyam' });
   state.npc = null;
 
   state.khachapuriTimes.push(state.time);
@@ -159,6 +199,7 @@ function handleScare(state) {
 
   for (const car of scaryCars) scareBrake(car);
   for (const group of crossing) scareKidGroup(group);
+  state.events.push({ type: 'honk' });
 
   state.paws -= 1;
   state.comboStreak = 0;
@@ -179,12 +220,14 @@ function scoreCrossing(state, group) {
   state.kidsCrossedTotal += group.kids.length;
   state.comboStreak += 1;
   state.successfulCrossings += 1;
+  state.events.push({ type: 'yay' });
 
   const wave =
     Math.floor(state.successfulCrossings / WAVES.crossingsPerWave) + 1;
   if (wave > state.wave) {
     state.wave = wave;
     state.toast = { kind: 'wave', wave, age: 0, duration: WAVES.toastDuration };
+    state.events.push({ type: 'wave' });
   }
 }
 

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <!-- Хачапури имерули: румяная корка, сыр, пар. -->
+  <circle cx="10" cy="11" r="8.4" fill="#000" opacity="0.12"/>
+  <circle cx="10" cy="10" r="8.4" fill="#d9932f"/>
+  <circle cx="10" cy="10" r="6.6" fill="#f2c14e"/>
+  <circle cx="10" cy="10" r="4.2" fill="#f7dc8c"/>
+  <circle cx="8" cy="8.4" r="1" fill="#fdeebc"/>
+  <circle cx="12.4" cy="11.6" r="0.9" fill="#fdeebc"/>
+  <path d="M7 4.2 Q7.8 2.8 7 1.6 M10.4 3.8 Q11.2 2.4 10.4 1.2 M13.6 4.4 Q14.4 3 13.6 1.8"
+        fill="none" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.8"/>
+</svg>

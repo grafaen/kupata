@@ -12,6 +12,7 @@ export function createCar(laneIndex, type, speedFactor = 1) {
   const t = CAR.types[type];
   const cruiseSpeed =
     (t.speedMin + Math.random() * (t.speedMax - t.speedMin)) * speedFactor;
+  const look = Math.floor(Math.random() * t.colors.length);
 
   return {
     x: spawnXFor(laneIndex, t.w),
@@ -21,7 +22,8 @@ export function createCar(laneIndex, type, speedFactor = 1) {
     lane: laneIndex,
     dir: lane.dir,
     type, // 'sedan' | 'taxi' | 'marshrutka' (ключ CAR.types)
-    color: t.colors[Math.floor(Math.random() * t.colors.length)],
+    color: t.colors[look],
+    sprite: t.sprites[look], // имя в манифесте SPRITES (цвет — фолбэк рендера)
     cruiseSpeed,
     speed: cruiseSpeed,
     state: 'driving',

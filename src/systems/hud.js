@@ -47,7 +47,7 @@ function toastText(toast) {
 // Шкала энергии: косточка + полоса; на слабом лае заливка краснеет.
 function drawEnergyBar(ctx, dog) {
   const bar = HUD.energy;
-  const x = WORLD.width - HUD.margin - bar.width;
+  const x = WORLD.width - bar.rightOffset - bar.width;
   const y = HUD.margin + 4;
 
   ctx.textAlign = 'right';

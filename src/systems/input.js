@@ -44,6 +44,7 @@ export function createInput(target = window) {
     axisY: () => axisFrom(AXIS_Y_NEG, AXIS_Y_POS),
     // Лай — edge-trigger: true один раз на физическое нажатие (удержание не спамит).
     consumeBark: () => justPressed.delete('Space'),
+    consumeMuteToggle: () => justPressed.delete('KeyM'),
   };
 }
 

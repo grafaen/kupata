@@ -27,6 +27,10 @@ export const STRINGS = {
   fx: {
     honk: 'БИИП!',
     khachapuriCall: 'Гамарджоба! Хачапури!', // TODO M5: ka-вариант, проверить носителем
+    bark: 'Гав!', // TODO M5: «ჰავ!» / "Woof!"
+    oy: 'Ой!',
+    yay: 'Ура!',
+    scare: '!',
     stuffed: '💤',
     shrug: '🤷',
     heart: '💖',

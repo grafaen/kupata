@@ -16,6 +16,25 @@ canvas {
   touch-action: none;
 }
 
+/* Кнопка звука: поверх canvas в правом верхнем углу (M — тот же тумблер). */
+#mute-btn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(10, 12, 16, 0.35);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#mute-btn:hover {
+  background: rgba(10, 12, 16, 0.55);
+}
+
 /* Экраны — HTML-оверлеи поверх canvas (impl-plan 3.3). */
 .overlay {
   position: fixed;

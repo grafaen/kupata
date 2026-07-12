@@ -25,7 +25,18 @@ export const ZONES = {
 export const ZEBRA = { x1: 430, x2: 530 };
 
 // Купата: управляемый персонаж. minY/maxY — границы разрешённой зоны (тротуары + дорога).
-export const DOG = { speed: 220, w: 48, h: 32, minY: 120, maxY: 440 };
+// «Наезд» невозможен: контакт с движущейся машиной лишь отбрасывает и оглушает
+// («Ой!», лапки не тратятся); стоящая машина — твёрдая (внутрь не зайти).
+export const DOG = {
+  speed: 220,
+  w: 48,
+  h: 32,
+  minY: 120,
+  maxY: 440,
+  stunDuration: 1.5, // сек оглушения после контакта с движущейся машиной
+  knockback: 36, // на сколько отбрасывает от машины, px
+  contactSpeed: 20, // машина быстрее — контакт считается «наездом», px/с
+};
 
 // Полосы дороги: y — центр полосы (из ZONES), dir — направление движения по x.
 export const LANES = [
@@ -52,6 +63,7 @@ export const CAR = {
     // stopIdleDuration — сек стоянки после гава, если переход так и не начался;
     // impatience — суммарные сек в stopped без активного перехода до срыва с
     // «БИИП!» (у такси совпадает со stopIdleDuration: уезжает сигналя, не тихо).
+    // colors и sprites — параллельные массивы: цвет остаётся фолбэком рендера.
     sedan: {
       w: 64,
       h: 36,
@@ -60,6 +72,7 @@ export const CAR = {
       barksToStop: 1,
       stopIdleDuration: 2.0,
       colors: ['#c94f3d', '#4a72c4', '#4f9d69', '#ece8e1', '#9a6fb8', '#b7bcc4'],
+      sprites: ['carRed', 'carBlue', 'carGreen', 'carWhite', 'carPurple', 'carGray'],
     },
     taxi: {
       w: 64,
@@ -70,6 +83,7 @@ export const CAR = {
       stopIdleDuration: 4.0,
       impatience: 4.0,
       colors: ['#f4c430'],
+      sprites: ['taxi'],
     },
     marshrutka: {
       w: 100,
@@ -78,7 +92,8 @@ export const CAR = {
       speedMax: 120,
       barksToStop: 2,
       stopIdleDuration: 2.0,
-      colors: ['#e8e4da', '#c9d3dc'],
+      colors: ['#e8e4da'],
+      sprites: ['marshrutka'],
     },
   },
   // Веса спавна по волнам: строка i — волна i+1, дальше последней — последняя.
@@ -193,13 +208,52 @@ export const HUD = {
   energy: {
     width: 150, // полоса энергии справа, px
     height: 14,
+    rightOffset: 64, // отступ от правого края: не перекрываться с кнопкой звука
     color: '#ffd166',
     lowColor: '#e63946', // энергия < ENERGY.weakThreshold — слабый лай
     bg: 'rgba(255, 255, 255, 0.3)',
   },
 };
 
-export const STORAGE = { best: 'kupata.best' };
+export const STORAGE = { best: 'kupata.best', muted: 'kupata.muted' };
+
+// Манифест спрайтов (impl-plan 3.1): замена любого файла на PNG — одна строка.
+// Не загрузившийся спрайт не ломает игру: render рисует цветной прямоугольник.
+export const SPRITES = {
+  kupata: 'assets/sprites/kupata.svg',
+  kupataRun2: 'assets/sprites/kupata-run2.svg',
+  kupataBark: 'assets/sprites/kupata-bark.svg',
+  kupataStuffed: 'assets/sprites/kupata-stuffed.svg',
+  carRed: 'assets/sprites/car-red.svg',
+  carBlue: 'assets/sprites/car-blue.svg',
+  carGreen: 'assets/sprites/car-green.svg',
+  carWhite: 'assets/sprites/car-white.svg',
+  carPurple: 'assets/sprites/car-purple.svg',
+  carGray: 'assets/sprites/car-gray.svg',
+  taxi: 'assets/sprites/taxi.svg',
+  marshrutka: 'assets/sprites/marshrutka.svg',
+  kid1: 'assets/sprites/kid-1.svg',
+  kid2: 'assets/sprites/kid-2.svg',
+  kid3: 'assets/sprites/kid-3.svg',
+  kid4: 'assets/sprites/kid-4.svg',
+  granny: 'assets/sprites/granny.svg',
+  baker: 'assets/sprites/baker.svg',
+  khachapuri: 'assets/sprites/khachapuri.svg',
+  bgTop: 'assets/sprites/bg-top.svg',
+  bgBottom: 'assets/sprites/bg-bottom.svg',
+};
+
+// Пузыри реплик («Гав!», «БИИП!», зов жителя…) — рисуются на canvas.
+export const BUBBLE = {
+  font: 'bold 15px system-ui, sans-serif',
+  padX: 8,
+  padY: 5,
+  radius: 8,
+  tail: 6, // высота хвостика, px
+  bg: 'rgba(255, 255, 255, 0.95)',
+  text: '#333333',
+  barkShowFor: 0.35, // сек показа «Гав!» после гава (= окно позы лая)
+};
 
 // Лай Купаты.
 export const BARK = {

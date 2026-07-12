@@ -26,6 +26,7 @@ export function createKidGroup(side, wave) {
       homeX,
       homeY: y,
       color: KIDS.colors[i % KIDS.colors.length],
+      variant: 1 + Math.floor(Math.random() * 4), // спрайт kid-1..kid-4
       delay: 0, // стагер старта в гуське, сек
       arrived: false,
     });
