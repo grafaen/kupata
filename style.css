@@ -1,0 +1,17 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: #14161a;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  touch-action: none;
+}
