@@ -1,8 +1,8 @@
-import { WORLD, ZONES, ZEBRA, COLORS } from './config.js';
+import { WORLD, ZONES, ZEBRA, BARK, COLORS } from './config.js';
 
 // Полная перерисовка поля каждый кадр. Слои строго в порядке:
 // фон (море, набережная, декор) → тротуары → дорога → разметка → зебра →
-// машины → Купата.
+// машины → Купата → эффекты (кольца лая).
 // state может быть null (до старта игры) — тогда рисуем только поле.
 export function render(ctx, state) {
   const width = WORLD.width;
@@ -15,8 +15,27 @@ export function render(ctx, state) {
 
   if (state === null) return;
 
-  drawEntity(ctx, state.demoCar, COLORS.demoCar);
+  for (const car of state.cars) {
+    drawEntity(ctx, car, car.color);
+  }
   drawEntity(ctx, state.dog, COLORS.dog);
+  drawBarkRings(ctx, state.barkRings);
+}
+
+// Кольцо лая: расширяется ровно до радиуса действия и тает.
+function drawBarkRings(ctx, rings) {
+  for (const ring of rings) {
+    const t = ring.age / BARK.ringDuration;
+
+    ctx.save();
+    ctx.globalAlpha = 1 - t;
+    ctx.strokeStyle = BARK.ringColor;
+    ctx.lineWidth = BARK.ringWidth;
+    ctx.beginPath();
+    ctx.arc(ring.x, ring.y, 24 + (BARK.radius - 24) * t, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
 }
 
 function drawEntity(ctx, entity, color) {

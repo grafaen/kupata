@@ -11,9 +11,13 @@ const PREVENT_DEFAULT_CODES = new Set([
 
 export function createInput(target = window) {
   const pressed = new Set();
+  const justPressed = new Set();
 
   target.addEventListener('keydown', (e) => {
     pressed.add(e.code);
+    if (!e.repeat) {
+      justPressed.add(e.code);
+    }
     if (PREVENT_DEFAULT_CODES.has(e.code)) {
       e.preventDefault();
     }
@@ -25,6 +29,7 @@ export function createInput(target = window) {
 
   target.addEventListener('blur', () => {
     pressed.clear();
+    justPressed.clear();
   });
 
   function axisFrom(negCodes, posCodes) {
@@ -37,6 +42,8 @@ export function createInput(target = window) {
   return {
     axisX: () => axisFrom(AXIS_X_NEG, AXIS_X_POS),
     axisY: () => axisFrom(AXIS_Y_NEG, AXIS_Y_POS),
+    // Лай — edge-trigger: true один раз на физическое нажатие (удержание не спамит).
+    consumeBark: () => justPressed.delete('Space'),
   };
 }
 
