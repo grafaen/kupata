@@ -7,6 +7,7 @@ export const STRINGS = {
     best: 'Рекорд',
     newBest: 'Новый рекорд!',
     kidsCrossed: (n) => `Дети перешли дорогу: ${n}`,
+    khachapuriEaten: (n) => `Съедено хачапури: ${n}`,
     again: 'Ещё раз',
   },
   hud: {
@@ -21,8 +22,14 @@ export const STRINGS = {
       'туристы у башни Алфавита!',
       'вечер на Приморском бульваре!',
     ],
+    stuffed: 'Купата объелся!',
   },
   fx: {
     honk: 'БИИП!',
+    khachapuriCall: 'Гамарджоба! Хачапури!', // TODO M5: ka-вариант, проверить носителем
+    stuffed: '💤',
+    shrug: '🤷',
+    heart: '💖',
+    energy: '🦴',
   },
 };

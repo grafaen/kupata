@@ -33,24 +33,62 @@ export const LANES = [
   { y: (ZONES.roadLaneDown.y1 + ZONES.roadLaneDown.y2) / 2, dir: 1 }, // 320, вправо
 ];
 
-// Легковушка (единственный тип в M2; такси/маршрутка/скорая — M3).
+// Машины: общая физика — здесь, всё видовое (размер, скорость, гавы) — в types
+// (скорая — M5: строка типа + вес + спец-правила «лаять нельзя, −20 очков»).
 export const CAR = {
-  w: 64,
-  h: 36,
-  speedMin: 130, // крейсерская скорость: случайная из диапазона, px/с
-  speedMax: 180,
   accel: 220, // разгон, px/с²
   decel: 380, // штатное торможение (дистанция/пробка), px/с²
   barkDecel: 900, // экстренное торможение после гава/испуга, px/с²
   followGap: 18, // зазор бампер-до-бампера в пробке, px
   dogGap: 30, // зазор до Купаты на полосе, px
   kidGap: 26, // зазор до ребёнка на полосе, px
-  stopIdleDuration: 2.0, // сек стоянки после гава, если переход так и не начался
   stopReleaseDelay: 1.0, // сек стоянки после конца перехода («стоит, пока идёт переход + 1 с»)
   scareStopDuration: 1.5, // сек стоянки испуганной машины (дети успевают разбежаться)
-  honkDuration: 0.8, // сек показа «БИИП!» над испуганной машиной (звук — M4)
+  honkDuration: 0.8, // сек показа «БИИП!» над машиной (испуг, срыв такси; звук — M4)
   spawnMargin: 12, // насколько за краем экрана появляется машина, px
-  bodyColors: ['#c94f3d', '#4a72c4', '#4f9d69', '#ece8e1', '#9a6fb8', '#b7bcc4'],
+  firstBarkSlow: 0.6, // «клевок» после недостаточного гава: доля крейсерской скорости
+  barkHitDuration: 0.5, // сек мигания обводки после недостаточного гава
+  types: {
+    // stopIdleDuration — сек стоянки после гава, если переход так и не начался;
+    // impatience — суммарные сек в stopped без активного перехода до срыва с
+    // «БИИП!» (у такси совпадает со stopIdleDuration: уезжает сигналя, не тихо).
+    sedan: {
+      w: 64,
+      h: 36,
+      speedMin: 130, // крейсерская скорость: случайная из диапазона, px/с
+      speedMax: 180,
+      barksToStop: 1,
+      stopIdleDuration: 2.0,
+      colors: ['#c94f3d', '#4a72c4', '#4f9d69', '#ece8e1', '#9a6fb8', '#b7bcc4'],
+    },
+    taxi: {
+      w: 64,
+      h: 36,
+      speedMin: 150,
+      speedMax: 200,
+      barksToStop: 1,
+      stopIdleDuration: 4.0,
+      impatience: 4.0,
+      colors: ['#f4c430'],
+    },
+    marshrutka: {
+      w: 100,
+      h: 40,
+      speedMin: 90,
+      speedMax: 120,
+      barksToStop: 2,
+      stopIdleDuration: 2.0,
+      colors: ['#e8e4da', '#c9d3dc'],
+    },
+  },
+  // Веса спавна по волнам: строка i — волна i+1, дальше последней — последняя.
+  spawnWeights: [
+    { sedan: 1.0, taxi: 0, marshrutka: 0 },
+    { sedan: 0.75, taxi: 0.25, marshrutka: 0 },
+    { sedan: 0.6, taxi: 0.25, marshrutka: 0.15 },
+    { sedan: 0.5, taxi: 0.3, marshrutka: 0.2 },
+    { sedan: 0.4, taxi: 0.35, marshrutka: 0.25 },
+  ],
 };
 
 // Дети: группа ждёт у зебры, переходит гуськом, при испуге разбегается домой.
@@ -89,6 +127,42 @@ export const SCORE = {
   cleanGroupBonus: 20, // вся группа перешла без единого сигнала
   comboThreshold: 3, // столько успешных переходов подряд включают множитель
   comboMultiplier: 2,
+  khachapuri: 5, // за съеденный хачапури (без комбо-множителя)
+};
+
+// Энергия лая (game-design §3.1): тратится гавом, восстанавливается сама и хачапури.
+export const ENERGY = {
+  max: 100,
+  start: 100,
+  barkCost: 8,
+  regenPerSec: 4,
+  khachapuri: 50, // сколько энергии даёт один хачапури
+  weakThreshold: 15, // ниже — слабый лай (радиус BARK.weakRadius, лай не блокируется)
+};
+
+// Перекорм (game-design §3.4, отсылка к реальной истории Купаты).
+export const OVERFEED = {
+  count: 3, // столько хачапури…
+  window: 30, // …за столько сек → «Купата объелся!»
+  duration: 5, // сек: вдвое медленнее и не может лаять
+  speedFactor: 0.5,
+  toastDuration: 2.0, // сек жизни тоста «Купата объелся!»
+};
+
+// Житель с хачапури (game-design §3.4): Нино и Гоги чередуются.
+export const NPC = {
+  w: 26,
+  h: 34,
+  spawnDelayMin: 15, // пауза между жителями, сек (тикает, пока экран пуст)
+  spawnDelayMax: 25,
+  ignoreDuration: 8, // сек зова, потом пожимает плечами и уходит
+  shrugDuration: 1.2, // сек показа «🤷» перед исчезновением
+  eatGap: 6, // «вплотную»: зазор краёв прямоугольников Купаты и жителя, px
+  zebraGap: 60, // отступ точки появления от зебры (не мешать ждущим детям), px
+  edgeMargin: 40, // отступ от краёв экрана, px
+  heartDuration: 0.9, // сек жизни сердечка
+  heartRise: 28, // на сколько сердечко всплывает за жизнь, px
+  colors: { nino: '#b56576', gogi: '#7a5c3e' }, // заглушки до SVG M4
 };
 
 // Волны сложности (game-design §4): рост после каждых 3 успешных переходов.
@@ -116,13 +190,21 @@ export const HUD = {
   color: '#ffffff',
   margin: 16,
   toastY: 60,
+  energy: {
+    width: 150, // полоса энергии справа, px
+    height: 14,
+    color: '#ffd166',
+    lowColor: '#e63946', // энергия < ENERGY.weakThreshold — слабый лай
+    bg: 'rgba(255, 255, 255, 0.3)',
+  },
 };
 
 export const STORAGE = { best: 'kupata.best' };
 
-// Лай Купаты (энергия лая — M3, здесь её нет).
+// Лай Купаты.
 export const BARK = {
   radius: 130, // px от центра собаки до ближайшей точки машины
+  weakRadius: 70, // радиус слабого лая (энергия < ENERGY.weakThreshold), px
   cooldown: 0.5, // сек
   ringDuration: 0.4, // сек жизни расходящегося кольца
   ringColor: '#ffd166',

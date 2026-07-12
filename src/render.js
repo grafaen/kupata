@@ -1,10 +1,10 @@
-import { WORLD, ZONES, ZEBRA, BARK, KIDS, COLORS } from './config.js';
+import { WORLD, ZONES, ZEBRA, BARK, KIDS, NPC, COLORS } from './config.js';
 import { drawHud } from './systems/hud.js';
 import { STRINGS } from './systems/strings.js';
 
 // Полная перерисовка поля каждый кадр. Слои строго в порядке:
 // фон (море, набережная, декор) → тротуары → дорога → разметка → зебра →
-// машины → дети → Купата → эффекты (кольца лая, «БИИП!») → HUD.
+// машины → дети → житель → Купата → эффекты (кольца лая, «БИИП!», 💖, 💤) → HUD.
 // state может быть null (до старта игры) — тогда рисуем только поле.
 export function render(ctx, state) {
   const width = WORLD.width;
@@ -18,13 +18,30 @@ export function render(ctx, state) {
   if (state === null) return;
 
   for (const car of state.cars) {
-    drawEntity(ctx, car, car.color);
+    drawCar(ctx, car, state.time);
   }
   drawKidGroups(ctx, state);
+  if (state.npc !== null) drawNpc(ctx, state.npc);
   drawEntity(ctx, state.dog, COLORS.dog);
   drawBarkRings(ctx, state.barkRings);
   drawHonks(ctx, state.cars);
+  drawHearts(ctx, state.hearts);
+  drawStuffedBubble(ctx, state.dog);
   drawHud(ctx, state);
+}
+
+// Машина: корпус + мигающая обводка, пока тикает barkHitTimer
+// («гав засчитан, но маршрутке нужен второй»).
+function drawCar(ctx, car, time) {
+  drawEntity(ctx, car, car.color);
+
+  if (car.barkHitTimer <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = 0.5 + 0.5 * Math.sin(time * 30);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(car.x - car.w / 2, car.y - car.h / 2, car.w, car.h);
+  ctx.restore();
 }
 
 // Дети: ожидающие слегка «машут» (покачивание), над waiting-группой — кружок
@@ -77,7 +94,8 @@ function drawHonks(ctx, cars) {
   ctx.restore();
 }
 
-// Кольцо лая: расширяется ровно до радиуса действия и тает.
+// Кольцо лая: расширяется ровно до радиуса своего гава (слабый лай — маленькое
+// кольцо, игрок видит дальнобойность) и тает.
 function drawBarkRings(ctx, rings) {
   for (const ring of rings) {
     const t = ring.age / BARK.ringDuration;
@@ -87,10 +105,51 @@ function drawBarkRings(ctx, rings) {
     ctx.strokeStyle = BARK.ringColor;
     ctx.lineWidth = BARK.ringWidth;
     ctx.beginPath();
-    ctx.arc(ring.x, ring.y, 24 + (BARK.radius - 24) * t, 0, Math.PI * 2);
+    ctx.arc(ring.x, ring.y, 24 + (ring.radius - 24) * t, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }
+}
+
+// Житель: зовёт репликой, уходя — пожимает плечами (анимации — M4).
+function drawNpc(ctx, npc) {
+  drawEntity(ctx, npc, NPC.colors[npc.kind]);
+
+  ctx.save();
+  ctx.font = 'bold 16px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillStyle = '#ffffff';
+  const text = npc.state === 'calling' ? STRINGS.fx.khachapuriCall : STRINGS.fx.shrug;
+  const halfText = ctx.measureText(text).width / 2;
+  const x = Math.min(Math.max(npc.x, halfText + 4), WORLD.width - halfText - 4);
+  ctx.fillText(text, x, npc.y - npc.h / 2 - 4);
+  ctx.restore();
+}
+
+// 💖 над съеденным хачапури: всплывает и тает.
+function drawHearts(ctx, hearts) {
+  ctx.save();
+  ctx.font = 'bold 18px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  for (const heart of hearts) {
+    const t = heart.age / NPC.heartDuration;
+    ctx.globalAlpha = 1 - t;
+    ctx.fillText(STRINGS.fx.heart, heart.x, heart.y - NPC.heartRise * t);
+  }
+  ctx.restore();
+}
+
+// 💤 над объевшимся Купатой (полноценная анимация — M4).
+function drawStuffedBubble(ctx, dog) {
+  if (dog.stuffedTimer <= 0) return;
+  ctx.save();
+  ctx.font = 'bold 18px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(STRINGS.fx.stuffed, dog.x, dog.y - dog.h / 2 - 4);
+  ctx.restore();
 }
 
 function drawEntity(ctx, entity, color) {

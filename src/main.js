@@ -49,6 +49,8 @@ function showGameOver() {
     : `${STRINGS.ui.best}: ${best}`;
   document.getElementById('go-kids').textContent =
     STRINGS.ui.kidsCrossed(state.kidsCrossedTotal);
+  document.getElementById('go-khachapuri').textContent =
+    STRINGS.ui.khachapuriEaten(state.khachapuriEaten);
   overlay.classList.remove('hidden');
 }
 

@@ -7,25 +7,44 @@ import { WORLD, LANES, CAR, ZEBRA, DANGER_ZONE } from '../config.js';
 // - 'stopped' — остановлена лаем или испугом: стоит, пока не истечёт stopTimer
 //   (game.js прижимает таймер, пока идёт переход), затем сама уезжает.
 
-export function createCar(laneIndex, speedFactor = 1) {
+export function createCar(laneIndex, type, speedFactor = 1) {
   const lane = LANES[laneIndex];
+  const t = CAR.types[type];
   const cruiseSpeed =
-    (CAR.speedMin + Math.random() * (CAR.speedMax - CAR.speedMin)) * speedFactor;
+    (t.speedMin + Math.random() * (t.speedMax - t.speedMin)) * speedFactor;
 
   return {
-    x: spawnXFor(laneIndex),
+    x: spawnXFor(laneIndex, t.w),
     y: lane.y,
-    w: CAR.w,
-    h: CAR.h,
+    w: t.w,
+    h: t.h,
     lane: laneIndex,
     dir: lane.dir,
-    color: CAR.bodyColors[Math.floor(Math.random() * CAR.bodyColors.length)],
+    type, // 'sedan' | 'taxi' | 'marshrutka' (ключ CAR.types)
+    color: t.colors[Math.floor(Math.random() * t.colors.length)],
     cruiseSpeed,
     speed: cruiseSpeed,
     state: 'driving',
     stopTimer: 0,
-    honkTimer: 0, // > 0 — над машиной висит «БИИП!» (после испуга)
+    honkTimer: 0, // > 0 — над машиной висит «БИИП!» (испуг, срыв такси)
+    barksNeeded: t.barksToStop,
+    barksGot: 0,
+    impatienceTimer: 0, // суммарные сек в stopped без перехода (такси)
+    barkHitTimer: 0, // > 0 — мигает обводка «гав засчитан, но мало» (маршрутка)
   };
+}
+
+// Тип спавнящейся машины: взвешенный ролл по строке волны в CAR.spawnWeights.
+export function pickCarType(wave) {
+  const rows = CAR.spawnWeights;
+  const weights = rows[Math.min(wave, rows.length) - 1];
+
+  let roll = Math.random() * Object.values(weights).reduce((sum, w) => sum + w, 0);
+  for (const [type, weight] of Object.entries(weights)) {
+    roll -= weight;
+    if (roll < 0) return type;
+  }
+  return 'sedan';
 }
 
 // Обновление всех машин: в каждой полосе лидер каждой машины — предыдущая
@@ -46,6 +65,7 @@ export function updateCars(cars, obstacles, dt) {
 
 function updateCar(car, leader, obstacles, dt) {
   car.honkTimer = Math.max(0, car.honkTimer - dt);
+  car.barkHitTimer = Math.max(0, car.barkHitTimer - dt);
 
   const stopX = stopPointFor(car, leader, obstacles);
   const dist = stopX === null ? Infinity : Math.max((stopX - car.x) * car.dir, 0);
@@ -74,8 +94,15 @@ function updateCar(car, leader, obstacles, dt) {
 
   if (car.state === 'stopped') {
     car.stopTimer -= dt;
-    if (car.stopTimer <= 0) car.state = 'driving';
+    if (car.stopTimer <= 0) releaseCar(car);
   }
+}
+
+// Выход из stopped: гавы «сгорают» — снова остановить машину стоит полной цены.
+function releaseCar(car) {
+  car.state = 'driving';
+  car.barksGot = 0;
+  car.impatienceTimer = 0;
 }
 
 // Стоп-точка (x центра машины): ближайшее из «за лидером» и «за препятствием
@@ -106,11 +133,50 @@ function obstacleBlocksCar(car, ent) {
 }
 
 // Гав по машине: остановка; повторный гав по стоящей обновляет таймер
-// (игрок может «держать» колонну). Если переход так и не начнётся,
-// машина уедет через stopIdleDuration.
+// (игрок может «держать» колонну). Если переход так и не начнётся, машина
+// уедет через свой stopIdleDuration. Маршрутке нужно barksToStop = 2: первый
+// гав не останавливает — только «клевок» скоростью и мигание обводки.
 export function tryStopByBark(car) {
+  car.barksGot += 1;
+  if (car.barksGot < car.barksNeeded) {
+    car.speed = Math.min(car.speed, car.cruiseSpeed * CAR.firstBarkSlow);
+    car.barkHitTimer = CAR.barkHitDuration;
+    return;
+  }
   car.state = 'stopped';
-  car.stopTimer = CAR.stopIdleDuration;
+  car.stopTimer = CAR.types[car.type].stopIdleDuration;
+}
+
+// Нетерпеливое такси: суммарно простояв impatience сек в stopped, пока дети
+// так и не пошли, сигналит и уезжает. Активный переход «смиряет» такси —
+// таймер сбрасывается, машину держит holdStoppedCars (дети в безопасности
+// всегда). Повторный гав обновляет stopTimer, но НЕ этот таймер — держать
+// такси дольше impatience суммарно нельзя. Возвращает true, если в этом кадре
+// кто-то просигналил (game.js лишит waiting-группы бонуса «чисто»).
+// Вызывать строго ПОСЛЕ holdStoppedCars и ДО updateCars, с crossingActive,
+// вычисленным после апдейта групп, — иначе такси сорвётся в кадр начала перехода.
+export function updateImpatientTaxis(cars, dt, crossingActive) {
+  let honked = false;
+
+  for (const car of cars) {
+    const { impatience } = CAR.types[car.type];
+    if (!impatience) continue;
+
+    if (car.state !== 'stopped' || crossingActive) {
+      car.impatienceTimer = 0;
+      continue;
+    }
+
+    car.impatienceTimer += dt;
+    if (car.impatienceTimer >= impatience) {
+      releaseCar(car);
+      car.stopTimer = 0;
+      car.honkTimer = CAR.honkDuration;
+      honked = true;
+    }
+  }
+
+  return honked;
 }
 
 // Испуг: экстренное торможение + «БИИП!». После разбегания детей перехода нет,
@@ -196,22 +262,23 @@ export function isCarMoving(car) {
   return car.speed > 0.5;
 }
 
-// Можно ли спавнить в полосе: у точки спавна не должно быть машины ближе
-// корпуса с зазором — при пробке очередь копится за экраном без наложений.
-export function canSpawnInLane(cars, laneIndex) {
-  const spawnX = spawnXFor(laneIndex);
+// Можно ли спавнить машину шириной w в полосе: у точки спавна не должно быть
+// машины ближе полукорпусов с зазором — при пробке очередь копится за экраном
+// без наложений.
+export function canSpawnInLane(cars, laneIndex, w) {
+  const spawnX = spawnXFor(laneIndex, w);
   const { dir } = LANES[laneIndex];
 
   for (const car of cars) {
     if (car.lane !== laneIndex) continue;
-    if ((car.x - spawnX) * dir < car.w + CAR.followGap) return false;
+    if ((car.x - spawnX) * dir < (car.w + w) / 2 + CAR.followGap) return false;
   }
   return true;
 }
 
-// Точка спавна: центр машины за краем экрана по ходу движения полосы.
-function spawnXFor(laneIndex) {
-  const offset = CAR.w / 2 + CAR.spawnMargin;
+// Точка спавна: центр машины шириной w за краем экрана по ходу движения полосы.
+function spawnXFor(laneIndex, w) {
+  const offset = w / 2 + CAR.spawnMargin;
   return LANES[laneIndex].dir === 1 ? -offset : WORLD.width + offset;
 }
 
