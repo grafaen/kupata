@@ -22,7 +22,7 @@ export function drawHud(ctx, state) {
     HUD.margin,
   );
 
-  drawEnergyBar(ctx, state.dog);
+  drawEnergyBar(ctx, state.dog, state.time);
 
   if (state.toast !== null) {
     const t = state.toast.age / state.toast.duration;
@@ -44,8 +44,9 @@ function toastText(toast) {
   return STRINGS.toast.wave(toast.wave, flavor);
 }
 
-// Шкала энергии: косточка + полоса; на слабом лае заливка краснеет.
-function drawEnergyBar(ctx, dog) {
+// Шкала энергии: косточка + полоса; на слабом лае заливка краснеет и
+// пульсирует — энергия теперь жизнь, ноль означает game over.
+function drawEnergyBar(ctx, dog, time) {
   const bar = HUD.energy;
   const x = WORLD.width - bar.rightOffset - bar.width;
   const y = HUD.margin + 4;
@@ -56,6 +57,11 @@ function drawEnergyBar(ctx, dog) {
   ctx.fillStyle = bar.bg;
   ctx.fillRect(x, y, bar.width, bar.height);
 
-  ctx.fillStyle = dog.energy < ENERGY.weakThreshold ? bar.lowColor : bar.color;
+  const low = dog.energy < ENERGY.weakThreshold;
+  if (low) {
+    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(time * Math.PI * 2 * bar.pulseHz);
+  }
+  ctx.fillStyle = low ? bar.lowColor : bar.color;
   ctx.fillRect(x, y, bar.width * (dog.energy / ENERGY.max), bar.height);
+  ctx.globalAlpha = 1;
 }

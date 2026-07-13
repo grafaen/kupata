@@ -44,23 +44,68 @@
     <circle cx="92" cy="27" r="16" fill="none" stroke="#f4f4f2" stroke-width="2"/>
     <circle cx="92" cy="27" r="5" fill="none" stroke="#f4f4f2" stroke-width="2"/>
   </g>
-  <!-- МУРАЛ КУПАТЫ на стене (вид чуть сверху, стена лежит вдоль дорожки) -->
+  <!-- МУРАЛ КУПАТЫ на стене — по настоящему муралу в Батуми: серая стена с
+       диагональными полосами, сидящий анфас белый пёс в золотой короне,
+       столбики «KU PA TA» и «კუპატა» с штрихами. -->
   <g transform="translate(310 36)">
+    <clipPath id="muralWall"><rect x="3" y="3" width="154" height="62" rx="2"/></clipPath>
     <rect x="-4" y="-4" width="168" height="76" rx="4" fill="#8a9a6d"/>
-    <rect x="0" y="0" width="160" height="68" rx="3" fill="#ece8e1"/>
-    <rect x="3" y="3" width="154" height="62" rx="2" fill="#f4f1ea"/>
-    <!-- портрет Купаты -->
-    <ellipse cx="52" cy="36" rx="26" ry="20" fill="#e8842c"/>
-    <circle cx="74" cy="30" r="13" fill="#e8842c"/>
-    <path d="M66 20 L61 8 L74 15 Z" fill="#b5641c"/>
-    <path d="M82 22 L87 10 L76 16 Z" fill="#b5641c"/>
-    <ellipse cx="82" cy="33" rx="6" ry="5" fill="#f4a95c"/>
-    <circle cx="86.5" cy="32" r="2.2" fill="#4a2c14"/>
-    <circle cx="71" cy="26" r="2" fill="#4a2c14"/>
-    <path d="M26 40 Q18 34 20 24" fill="none" stroke="#e8842c" stroke-width="5" stroke-linecap="round"/>
-    <!-- сердце и подпись -->
-    <path d="M116 22 c4 -7 14 -4 14 3 c0 6 -8 11 -14 15 c-6 -4 -14 -9 -14 -15 c0 -7 10 -10 14 -3 Z" fill="#e05780"/>
-    <text x="116" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="bold" fill="#7a5c3e">კუპატა</text>
+    <rect x="0" y="0" width="160" height="68" rx="3" fill="#b9b9b4"/>
+    <rect x="3" y="3" width="154" height="62" rx="2" fill="#dcdcd8"/>
+    <!-- диагональные серые полосы под собакой -->
+    <g clip-path="url(#muralWall)" fill="#c9c9c4">
+      <path d="M3 56 L157 40 L157 47 L3 63 Z"/>
+      <path d="M3 68 L157 52 L157 59 L3 75 Z"/>
+    </g>
+    <g clip-path="url(#muralWall)">
+      <!-- задняя лапа поджата вбок -->
+      <ellipse cx="98" cy="52" rx="15" ry="11" fill="#eceae4" stroke="#2a2a2a" stroke-width="1.4"/>
+      <!-- корпус-«колбаска» -->
+      <ellipse cx="82" cy="44" rx="18" ry="18" fill="#f6f4ef" stroke="#2a2a2a" stroke-width="1.4"/>
+      <!-- пятно на плече и крапинки на груди -->
+      <ellipse cx="68" cy="36" rx="5" ry="6.5" transform="rotate(14 68 36)" fill="#1f1f1f"/>
+      <circle cx="78" cy="40" r="0.9" fill="#1f1f1f"/>
+      <circle cx="86" cy="43" r="0.8" fill="#1f1f1f"/>
+      <circle cx="80" cy="47" r="0.7" fill="#1f1f1f"/>
+      <!-- передние лапы прямые, крупные ступни вперёд -->
+      <path d="M73 44 L72 58 Q72 61 76 61 L78 61 Q80 61 80 58 L80 44 Z" fill="#f6f4ef" stroke="#2a2a2a" stroke-width="1.2"/>
+      <path d="M85 44 L85 58 Q85 61 89 61 L91 61 Q93 61 93 58 L92 44 Z" fill="#f6f4ef" stroke="#2a2a2a" stroke-width="1.2"/>
+      <ellipse cx="76" cy="60.5" rx="5.4" ry="3" fill="#f6f4ef" stroke="#2a2a2a" stroke-width="1.2"/>
+      <ellipse cx="89.5" cy="60.5" rx="5.4" ry="3" fill="#f6f4ef" stroke="#2a2a2a" stroke-width="1.2"/>
+      <circle cx="76" cy="59.4" r="0.7" fill="#1f1f1f"/>
+      <circle cx="89.5" cy="59.4" r="0.7" fill="#1f1f1f"/>
+      <!-- висячие чёрные уши -->
+      <ellipse cx="71" cy="19" rx="3.6" ry="7" transform="rotate(14 71 19)" fill="#1f1f1f" stroke="#2a2a2a" stroke-width="1"/>
+      <ellipse cx="93" cy="19" rx="3.6" ry="7" transform="rotate(-14 93 19)" fill="#1f1f1f" stroke="#2a2a2a" stroke-width="1"/>
+      <!-- голова: белая, чёрная «шапка»-маска с белой проточиной -->
+      <circle cx="82" cy="22" r="11.5" fill="#f6f4ef" stroke="#2a2a2a" stroke-width="1.4"/>
+      <path d="M72 27 Q70 13 79 11.4 Q78.4 18 77.6 25 Q74.6 28.4 72 27 Z" fill="#1f1f1f"/>
+      <path d="M92 27 Q94 13 85 11.4 Q85.6 18 86.4 25 Q89.4 28.4 92 27 Z" fill="#1f1f1f"/>
+      <!-- глаза (грустновато-спокойные) на маске -->
+      <circle cx="76.6" cy="20.6" r="2.3" fill="#f6f4ef"/>
+      <circle cx="87.4" cy="20.6" r="2.3" fill="#f6f4ef"/>
+      <circle cx="76.9" cy="21" r="1.4" fill="#1a1a1a"/>
+      <circle cx="87.1" cy="21" r="1.4" fill="#1a1a1a"/>
+      <!-- нос и пасть -->
+      <ellipse cx="82" cy="27" rx="3.2" ry="2.4" fill="#1a1a1a"/>
+      <path d="M82 29.4 Q82 31.6 79.4 32.2 M82 29.4 Q82 31.6 84.6 32.2" fill="none" stroke="#2a2a2a" stroke-width="1"/>
+      <!-- золотая корона с зубцами и искоркой -->
+      <path d="M73.5 12.5 L76 5 L79.5 10 L82 4 L84.5 10 L88 5 L90.5 12.5 Q82 15.5 73.5 12.5 Z" fill="#e0a32e" stroke="#b87d18" stroke-width="1"/>
+      <path d="M82.8 5.4 L83.4 7 L85 7.6 L83.4 8.2 L82.8 9.8 L82.2 8.2 L80.6 7.6 L82.2 7 Z" fill="#ffffff"/>
+    </g>
+    <!-- надписи как на мурале: столбики с короткими штрихами -->
+    <g fill="#2a2a2a" font-family="system-ui, sans-serif" font-size="9.5" font-weight="bold" text-anchor="middle">
+      <rect x="16" y="9" width="16" height="2.4"/>
+      <rect x="16" y="13.4" width="10" height="2.4"/>
+      <text x="24" y="26">KU</text>
+      <text x="24" y="37">PA</text>
+      <text x="24" y="48">TA</text>
+      <rect x="130" y="9" width="16" height="2.4"/>
+      <rect x="136" y="13.4" width="10" height="2.4"/>
+      <text x="138" y="26">კუ</text>
+      <text x="138" y="37">პა</text>
+      <text x="138" y="48">ტა</text>
+    </g>
   </g>
   <!-- ХАЧАПУРНАЯ: крыша и вывеска -->
   <g transform="translate(520 28)">

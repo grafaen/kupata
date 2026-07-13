@@ -2,7 +2,8 @@
 // i18n.js (ka/ru/en) с теми же ключами; код обращается только к STRINGS.
 export const STRINGS = {
   ui: {
-    gameoverTitle: 'Купата устал…',
+    gameoverTitle: 'Купата устал…', // конец по лапкам
+    gameoverTitleEnergy: 'Купата выдохся…', // конец по энергии (гав на нуле)
     score: 'Очки',
     best: 'Рекорд',
     newBest: 'Новый рекорд!',
@@ -26,6 +27,7 @@ export const STRINGS = {
   },
   fx: {
     honk: 'БИИП!',
+    impatient: 'Би-би?', // такси вот-вот сорвётся
     khachapuriCall: 'Гамарджоба! Хачапури!', // TODO M5: ka-вариант, проверить носителем
     bark: 'Гав!', // TODO M5: «ჰავ!» / "Woof!"
     oy: 'Ой!',

@@ -1,27 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="32" viewBox="0 0 48 32">
-  <!-- Купата, вид сверху, мордой вправо. Кадр бега A (лапы враскид). -->
+  <!-- Купата (настоящий окрас с мурала: белый, чёрная «шапка» с маской и
+       проточиной, пятно на плече; корона — только на мурале), вид сверху,
+       мордой вправо. Кадр бега A (лапы враскид). -->
   <!-- тень -->
-  <ellipse cx="23" cy="17" rx="16" ry="9" fill="#000" opacity="0.12"/>
+  <ellipse cx="23" cy="17" rx="16" ry="9" fill="#000" opacity="0.18"/>
   <!-- хвост -->
-  <path d="M9 16 Q3 13 4 7" fill="none" stroke="#e8842c" stroke-width="3.4" stroke-linecap="round"/>
-  <path d="M4.6 8.6 Q4 7 4.9 5.6" fill="none" stroke="#f4a95c" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M9 16 Q3 13 4 7" fill="none" stroke="#f2efe9" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M4.6 8.6 Q4 7 4.9 5.6" fill="none" stroke="#d9d4cc" stroke-width="2.2" stroke-linecap="round"/>
   <!-- лапы: кадр A — левая передняя и правая задняя вынесены -->
-  <ellipse cx="31" cy="7.5" rx="3.4" ry="2.4" fill="#d1731f"/>
-  <ellipse cx="15" cy="24.5" rx="3.4" ry="2.4" fill="#d1731f"/>
-  <ellipse cx="30" cy="25.5" rx="2.9" ry="2.1" fill="#c2681a"/>
-  <ellipse cx="16" cy="6.5" rx="2.9" ry="2.1" fill="#c2681a"/>
+  <ellipse cx="31" cy="7.5" rx="3.4" ry="2.4" fill="#e5e0d7"/>
+  <ellipse cx="15" cy="24.5" rx="3.4" ry="2.4" fill="#e5e0d7"/>
+  <ellipse cx="30" cy="25.5" rx="2.9" ry="2.1" fill="#d9d4cc"/>
+  <ellipse cx="16" cy="6.5" rx="2.9" ry="2.1" fill="#d9d4cc"/>
   <!-- корпус -->
-  <ellipse cx="22" cy="16" rx="14" ry="8.6" fill="#e8842c"/>
+  <ellipse cx="22" cy="16" rx="14" ry="8.6" fill="#f2efe9"/>
   <!-- спина (блик) -->
-  <ellipse cx="21" cy="15.2" rx="10" ry="5" fill="#f09a48"/>
-  <path d="M12 16 Q22 13.4 32 16" fill="none" stroke="#d1731f" stroke-width="1.2" opacity="0.6"/>
-  <!-- голова -->
-  <circle cx="36" cy="16" r="7.6" fill="#e8842c"/>
-  <ellipse cx="35.4" cy="15" rx="5.4" ry="4.4" fill="#f09a48"/>
+  <ellipse cx="21" cy="15.2" rx="10" ry="5" fill="#faf8f2"/>
+  <path d="M12 16 Q22 13.4 32 16" fill="none" stroke="#d9d4cc" stroke-width="1.2" opacity="0.7"/>
+  <!-- большое чёрное пятно на плече (снизу, чтобы не сливалось с ухом)
+       + крапинки у передней лапы -->
+  <ellipse cx="25" cy="20.8" rx="3.9" ry="2.8" transform="rotate(14 25 20.8)" fill="#1f1f1f"/>
+  <circle cx="28.5" cy="10.5" r="0.9" fill="#1f1f1f"/>
+  <circle cx="25.5" cy="12" r="0.7" fill="#1f1f1f"/>
+  <circle cx="23" cy="12.8" r="0.7" fill="#1f1f1f"/>
+  <!-- голова: белая, чёрные боковины «шапки», белая проточина к носу -->
+  <circle cx="36" cy="16" r="7.6" fill="#f2efe9"/>
+  <ellipse cx="35.2" cy="11.6" rx="5.6" ry="3.5" fill="#1f1f1f"/>
+  <ellipse cx="35.2" cy="20.4" rx="5.6" ry="3.5" fill="#1f1f1f"/>
+  <path d="M33 16 L43.5 13.6 L43.5 18.4 Z" fill="#f2efe9"/>
   <!-- уши -->
-  <ellipse cx="33" cy="9.4" rx="3" ry="4" transform="rotate(-30 33 9.4)" fill="#b5641c"/>
-  <ellipse cx="33" cy="22.6" rx="3" ry="4" transform="rotate(30 33 22.6)" fill="#b5641c"/>
+  <ellipse cx="33" cy="9.4" rx="3" ry="4" transform="rotate(-30 33 9.4)" fill="#1f1f1f"/>
+  <ellipse cx="33" cy="22.6" rx="3" ry="4" transform="rotate(30 33 22.6)" fill="#1f1f1f"/>
   <!-- морда и нос -->
-  <ellipse cx="42.4" cy="16" rx="4" ry="3.2" fill="#f4a95c"/>
-  <ellipse cx="45.2" cy="16" rx="1.7" ry="1.5" fill="#4a2c14"/>
+  <ellipse cx="42.4" cy="16" rx="4" ry="3.2" fill="#faf8f2"/>
+  <ellipse cx="45.2" cy="16" rx="2" ry="1.8" fill="#1a1a1a"/>
 </svg>

@@ -11,7 +11,7 @@ export function createDog() {
     energy: ENERGY.start,
     stuffedTimer: 0, // > 0 — «объелся»: вдвое медленнее и не может лаять
     stunTimer: 0, // > 0 — оглушён после контакта с движущейся машиной («Ой!»)
-    facing: 1, // 1 — вправо, -1 — влево (для отражения спрайта)
+    angle: 0, // направление морды в радианах (0 — вправо): спрайт поворачивается по движению
     moving: false, // для анимации бега
   };
 }
@@ -32,7 +32,7 @@ export function updateDog(dog, input, dt) {
   }
 
   dog.moving = dx !== 0 || dy !== 0;
-  if (dx !== 0) dog.facing = dx > 0 ? 1 : -1;
+  if (dog.moving) dog.angle = Math.atan2(dy, dx); // стоя, держит последнее направление
 
   const speed = dog.stuffedTimer > 0 ? DOG.speed * OVERFEED.speedFactor : DOG.speed;
   dog.x += dx * speed * dt;

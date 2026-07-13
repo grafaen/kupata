@@ -11,7 +11,6 @@ const ctx = canvas.getContext('2d');
 
 const overlay = document.getElementById('gameover');
 const againButton = document.getElementById('go-again');
-document.getElementById('go-title').textContent = STRINGS.ui.gameoverTitle;
 againButton.textContent = STRINGS.ui.again;
 
 const input = createInput();
@@ -74,6 +73,11 @@ function showGameOver() {
   const isNewBest = state.score > best;
   if (isNewBest) writeBest(state.score);
 
+  // Титул — по причине конца: лапки кончились или энергия на нуле.
+  document.getElementById('go-title').textContent =
+    state.gameoverReason === 'energy'
+      ? STRINGS.ui.gameoverTitleEnergy
+      : STRINGS.ui.gameoverTitle;
   document.getElementById('go-score').textContent =
     `${STRINGS.ui.score}: ${state.score}`;
   document.getElementById('go-best').textContent = isNewBest

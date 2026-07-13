@@ -5,7 +5,8 @@ import {
   createDog, updateDog, tryBark, barkRadius, clampDogPosition,
 } from './entities/dog.js';
 import {
-  createCar, updateCars, tryStopByBark, isCarInRadius, isCarGone, canSpawnInLane,
+  createCar, updateCars, tryStopByBark, isCarInRadius, isCarApproaching,
+  isCarGone, canSpawnInLane,
   isCarThreat, isCarScare, scareBrake, holdStoppedCars, pickCarType,
   updateImpatientTaxis,
 } from './entities/car.js';
@@ -17,6 +18,7 @@ import { createNpc, updateNpc, isNpcGone, canEat } from './entities/npc.js';
 export function createGame() {
   return {
     status: 'playing', // 'playing' | 'gameover'
+    gameoverReason: null, // 'paws' | 'energy' — какой титул показать на экране
     dog: createDog(),
     cars: [],
     laneSpawnTimers: LANES.map(() => randomSpawnInterval(1)),
@@ -47,6 +49,12 @@ export function update(state, input, dt) {
 
   updateDog(state.dog, input, dt);
   handleBark(state, input);
+  // Энергия — жизнь: проверять сразу после гава, в этом же кадре — реген
+  // следующего кадра замаскирует точный ноль.
+  if (state.dog.energy <= 0) {
+    state.status = 'gameover';
+    state.gameoverReason = 'energy';
+  }
 
   for (const ring of state.barkRings) ring.age += dt;
   state.barkRings = state.barkRings.filter((ring) => ring.age < BARK.ringDuration);
@@ -92,7 +100,9 @@ export function update(state, input, dt) {
   state.kidGroups = state.kidGroups.filter((group) => !isGroupExpired(group));
 }
 
-// Гав: кольцо-эффект + гав всем машинам, чей корпус попал в радиус.
+// Гав: кольцо-эффект + гав машинам, чей корпус попал в радиус И которые ещё
+// приближаются к Купате (поравнявшиеся/проехавшие не реагируют — в т.ч. нет
+// «клевка» маршрутки и нельзя «освежить» стоянку поравнявшейся машины).
 // Радиус — по энергии ДО списания (barkRadius раньше tryBark).
 function handleBark(state, input) {
   if (!input.consumeBark()) return;
@@ -105,7 +115,7 @@ function handleBark(state, input) {
   state.events.push({ type: 'bark', weak: radius < BARK.radius });
 
   for (const car of state.cars) {
-    if (isCarInRadius(car, dog.x, dog.y, radius)) {
+    if (isCarApproaching(car, dog.x) && isCarInRadius(car, dog.x, dog.y, radius)) {
       tryStopByBark(car);
     }
   }
@@ -206,6 +216,7 @@ function handleScare(state) {
   if (state.paws <= 0) {
     state.paws = 0;
     state.status = 'gameover';
+    state.gameoverReason = 'paws';
   }
 }
 

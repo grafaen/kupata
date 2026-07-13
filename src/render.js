@@ -1,9 +1,11 @@
 import {
-  WORLD, ZONES, ZEBRA, BARK, KIDS, NPC, BUBBLE, COLORS,
+  WORLD, ZONES, ZEBRA, BARK, CAR, KIDS, NPC, BUBBLE, COLORS,
 } from './config.js';
 import { drawHud } from './systems/hud.js';
 import { STRINGS } from './systems/strings.js';
 import { sprites } from './systems/sprites.js';
+import { isCarApproaching, isCarInRadius } from './entities/car.js';
+import { barkRadius } from './entities/dog.js';
 
 // Полная перерисовка поля каждый кадр. Слои строго в порядке:
 // фон (заливки зон → SVG-панорамы) → тротуары → дорога → разметка → зебра →
@@ -22,7 +24,7 @@ export function render(ctx, state) {
   if (state === null) return;
 
   for (const car of state.cars) {
-    drawCar(ctx, car, state.time);
+    drawCar(ctx, car, state);
   }
   drawKidGroups(ctx, state);
   if (state.npc !== null) drawNpc(ctx, state.npc);
@@ -53,30 +55,105 @@ function drawSprite(ctx, name, x, y, w, h, flip, fallback) {
   }
 }
 
-// Машина: спрайт по полосе (верхняя едет влево — отражаем) + мигающая
-// обводка, пока тикает barkHitTimer («гав засчитан, но маршрутке нужен второй»).
-function drawCar(ctx, car, time) {
+// Машина: спрайт по полосе (верхняя едет влево — отражаем) + телеграфы механик:
+// мигающая обводка barkHitTimer («гав засчитан, но мало»), пипсы гавов у
+// маршрутки, кольцо-таймер нетерпения у стоящего такси.
+function drawCar(ctx, car, state) {
   drawSprite(ctx, car.sprite, car.x, car.y, car.w, car.h, car.dir === -1, car.color);
+
+  const spec = CAR.types[car.type];
+  if (shouldShowBarkPips(car, state.dog)) drawBarkPips(ctx, car);
+  if (spec.impatience && car.state === 'stopped' && car.impatienceTimer > 0) {
+    drawImpatienceRing(ctx, car, spec.impatience);
+  }
 
   if (car.barkHitTimer <= 0) return;
   ctx.save();
-  ctx.globalAlpha = 0.5 + 0.5 * Math.sin(time * 30);
+  ctx.globalAlpha = 0.5 + 0.5 * Math.sin(state.time * 30);
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 3;
   ctx.strokeRect(car.x - car.w / 2, car.y - car.h / 2, car.w, car.h);
   ctx.restore();
 }
 
+// Пипсы гавов над машиной, которой нужно > 1 гава: видны после первого гава
+// (весь «клевок» — barksGot сбрасывается только при releaseCar) или пока
+// Купата рядом и машина ещё реагирует на лай. У стоящей не показываем: оба
+// пипса залиты — только шум во время перехода.
+function shouldShowBarkPips(car, dog) {
+  if (car.barksNeeded <= 1 || car.state === 'stopped') return false;
+  if (car.barksGot > 0) return true;
+  return isCarApproaching(car, dog.x)
+    && isCarInRadius(car, dog.x, dog.y, barkRadius(dog));
+}
+
+function drawBarkPips(ctx, car) {
+  const { radius, gap, yOffset } = CAR.pips;
+  const cy = car.y - car.h / 2 - yOffset;
+
+  ctx.save();
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < car.barksNeeded; i++) {
+    const cx = car.x + (i - (car.barksNeeded - 1) / 2) * gap;
+    const filled = i < car.barksGot;
+    ctx.fillStyle = filled ? BARK.ringColor : 'rgba(255, 255, 255, 0.3)';
+    ctx.strokeStyle = filled ? '#ffffff' : 'rgba(255, 255, 255, 0.6)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// Кольцо-таймер нетерпения над стоящим такси (аналог кружка терпения детей):
+// дуга убывает, к срыву краснеет. При активном переходе impatienceTimer
+// обнуляется — кольцо гаснет («такси смирилось»).
+function drawImpatienceRing(ctx, car, impatience) {
+  const ring = CAR.impatienceRing;
+  const cx = car.x;
+  const cy = car.y - car.h / 2 - ring.yOffset - ring.radius;
+  const frac = 1 - car.impatienceTimer / impatience;
+
+  ctx.save();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, ring.radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = frac < ring.warnFrac ? '#e63946' : '#f4c430';
+  ctx.beginPath();
+  ctx.arc(cx, cy, ring.radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac);
+  ctx.stroke();
+  ctx.restore();
+}
+
 // Купата: поза по состоянию (объелся → лает → бежит 8 кадров/с → стоит),
-// отражение по направлению взгляда, дрожь при оглушении.
+// поворот мордой по направлению движения, дрожь при оглушении.
 function drawDog(ctx, state) {
   const { dog } = state;
   const shake = dog.stunTimer > 0 ? Math.sin(state.time * 40) * 1.5 : 0;
-  drawSprite(
+  drawRotatedSprite(
     ctx, dogSpriteName(dog, state.time),
     dog.x + shake, dog.y, dog.w, dog.h,
-    dog.facing === -1, COLORS.dog,
+    dog.angle, COLORS.dog,
   );
+}
+
+// Спрайт, повёрнутый на angle вокруг своего центра (спрайты «носом вправо»).
+function drawRotatedSprite(ctx, name, x, y, w, h, angle, fallback) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  const img = sprites[name];
+  if (img) {
+    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+  } else {
+    ctx.fillStyle = fallback;
+    ctx.fillRect(-w / 2, -h / 2, w, h);
+  }
+  ctx.restore();
 }
 
 function dogSpriteName(dog, time) {
@@ -183,6 +260,13 @@ function drawBubbles(ctx, state) {
   for (const car of state.cars) {
     if (car.honkTimer > 0) {
       drawBubble(ctx, car.x, car.y - car.h / 2 - 2, STRINGS.fx.honk);
+    } else if (isTaxiAboutToLeave(car)) {
+      // «Би-би?» за warnTime до срыва; выше кольца нетерпения, чтобы не
+      // перекрывать его. С «БИИП!» не пересекается: срыв обнуляет таймер
+      // до установки honkTimer.
+      const ring = CAR.impatienceRing;
+      const bottomY = car.y - car.h / 2 - ring.yOffset - ring.radius * 2 - 2;
+      drawBubble(ctx, car.x, bottomY, STRINGS.fx.impatient);
     }
   }
 
@@ -206,6 +290,14 @@ function drawBubbles(ctx, state) {
   } else if (dog.barkCooldown > BARK.cooldown - BUBBLE.barkShowFor) {
     drawBubble(ctx, dog.x, dog.y - dog.h / 2 - 2, STRINGS.fx.bark);
   }
+}
+
+// Нетерпеливая машина, которой осталось меньше warnTime до срыва.
+function isTaxiAboutToLeave(car) {
+  const { impatience } = CAR.types[car.type];
+  return Boolean(impatience) && car.state === 'stopped'
+    && car.impatienceTimer > 0
+    && impatience - car.impatienceTimer <= CAR.impatienceRing.warnTime;
 }
 
 // Пузырь с хвостиком, остриём в (cx, bottomY); не вылезает за края поля.
@@ -318,6 +410,9 @@ function drawDivider(ctx, width) {
   ctx.restore();
 }
 
+// Зебра + следы Купаты между полос, как на настоящем переходе в Батуми:
+// светлая цепочка отпечатков (тёмные на асфальте не видны), шаги попеременно
+// левее/правее центра — собака прошла дорогу.
 function drawZebra(ctx) {
   const { roadLaneUp, roadLaneDown } = ZONES;
   const top = roadLaneUp.y1;
@@ -331,6 +426,30 @@ function drawZebra(ctx) {
   for (let i = 0; i < stripeCount; i++) {
     const y = top + i * gap + (gap - stripeHeight) / 2;
     ctx.fillRect(ZEBRA.x1, y, stripeWidth, stripeHeight);
+  }
+
+  const paws = ZEBRA.paws;
+  const centerX = (ZEBRA.x1 + ZEBRA.x2) / 2;
+  ctx.save();
+  ctx.globalAlpha = paws.alpha;
+  for (let i = 0; i < stripeCount - 1; i++) {
+    const x = centerX + (i % 2 === 0 ? -paws.offsetX : paws.offsetX);
+    const y = top + gap * (i + 1); // центр тёмного промежутка между полосами
+    drawPawPrint(ctx, x, y, paws);
+  }
+  ctx.restore();
+}
+
+// Отпечаток лапы: подушечка-эллипс + три пальца (средний чуть выше).
+function drawPawPrint(ctx, x, y, paws) {
+  ctx.beginPath();
+  ctx.ellipse(x, y, paws.padRx, paws.padRy, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  for (const [dx, rise] of [[-paws.toeSpread, 0], [0, 1.2], [paws.toeSpread, 0]]) {
+    ctx.beginPath();
+    ctx.arc(x + dx, y - paws.toeRise - rise, paws.toeR, 0, Math.PI * 2);
+    ctx.fill();
   }
 }
 

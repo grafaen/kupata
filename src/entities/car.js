@@ -1,4 +1,4 @@
-import { WORLD, LANES, CAR, ZEBRA, DANGER_ZONE } from '../config.js';
+import { WORLD, LANES, CAR, BARK, ZEBRA, DANGER_ZONE } from '../config.js';
 
 // Машина: x/y — центр прямоугольника (см. соглашение в config.js), y — центр
 // полосы и не меняется. Состояния:
@@ -252,6 +252,13 @@ export function isCarInRadius(car, cx, cy, r) {
   const dx = cx - nearX;
   const dy = cy - nearY;
   return dx * dx + dy * dy <= r * r;
+}
+
+// Машина реагирует на гав, только пока её нос не поравнялся с Купатой
+// (небольшой запас frontMargin): поравнявшуюся или проехавшую лай не берёт.
+export function isCarApproaching(car, x) {
+  const front = car.x + car.dir * (car.w / 2);
+  return (x - front) * car.dir > -BARK.frontMargin;
 }
 
 // Машина целиком уехала за противоположный край экрана.
