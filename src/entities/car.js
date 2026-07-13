@@ -239,7 +239,11 @@ export function isCarThreat(car) {
 }
 
 // Испуг: по-настоящему движущаяся в зоне не остановленная машина.
+// Скорая не пугает: остановить её нельзя — у игрока нет контрплея, лапку
+// не отнимаем. Физически дети в безопасности и так: ребёнок на дороге —
+// препятствие (obstaclesFor), скорая тормозит по стоп-точке, как все.
 export function isCarScare(car) {
+  if (CAR.types[car.type].emergency) return false;
   return car.state !== 'stopped' && isCarMoving(car)
     && carIntersectsZone(car) && !hasPassedZebra(car);
 }

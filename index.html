@@ -2,17 +2,60 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Купата — герой Батуми</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <canvas id="game" width="960" height="640"></canvas>
 
-  <!-- Звук: M или клик; состояние в localStorage (kupata.muted). -->
+  <!-- Кнопки поверх canvas: звук (M) и пауза (P/Esc). -->
   <button id="mute-btn" type="button" aria-label="Звук">🔊</button>
+  <button id="pause-btn" type="button" aria-label="Пауза">⏸</button>
 
-  <!-- Экран game over; тексты заполняет main.js из strings.js (задел под i18n M5). -->
+  <!-- Мобильное управление: джойстик + «ГАВ!», видны по pointer: coarse. -->
+  <div id="touch-controls">
+    <div id="joystick"><div id="joystick-nub"></div></div>
+    <button id="bark-btn" type="button" data-i18n="ui.bark"></button>
+  </div>
+
+  <!-- Экраны — HTML-оверлеи (impl-plan 3.3); тексты по data-i18n из i18n.js. -->
+  <div id="menu" class="overlay">
+    <div class="card">
+      <img class="menu-dog" src="assets/sprites/kupata.svg" alt="Купата">
+      <h1 data-i18n="ui.title"></h1>
+      <div class="lang-switch" role="group" aria-label="Язык">
+        <button type="button" data-lang="ka">ქარ</button>
+        <button type="button" data-lang="ru">RU</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+      <button id="menu-play" type="button" data-i18n="ui.play"></button>
+      <button id="menu-howto" type="button" class="secondary" data-i18n="ui.howto"></button>
+    </div>
+  </div>
+
+  <div id="howto" class="overlay hidden">
+    <div class="card card-howto">
+      <h1 data-i18n="ui.howto"></h1>
+      <p data-i18n="howto.goal"></p>
+      <p data-i18n="howto.move"></p>
+      <p data-i18n="howto.bark"></p>
+      <p data-i18n="howto.energy"></p>
+      <p data-i18n="howto.ambulance"></p>
+      <p data-i18n="howto.pause"></p>
+      <button id="howto-back" type="button" data-i18n="ui.back"></button>
+    </div>
+  </div>
+
+  <div id="pause" class="overlay hidden">
+    <div class="card">
+      <h1 data-i18n="ui.paused"></h1>
+      <button id="pause-resume" type="button" data-i18n="ui.resume"></button>
+      <button id="pause-restart" type="button" class="secondary" data-i18n="ui.restart"></button>
+      <button id="pause-menu" type="button" class="secondary" data-i18n="ui.toMenu"></button>
+    </div>
+  </div>
+
   <div id="gameover" class="overlay hidden">
     <div class="card">
       <h1 id="go-title"></h1>
@@ -20,7 +63,8 @@
       <p id="go-best"></p>
       <p id="go-kids"></p>
       <p id="go-khachapuri"></p>
-      <button id="go-again" type="button"></button>
+      <button id="go-again" type="button" data-i18n="ui.again"></button>
+      <button id="go-menu" type="button" class="secondary" data-i18n="ui.toMenu"></button>
     </div>
   </div>
 

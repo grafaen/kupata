@@ -57,8 +57,7 @@ export const LANES = [
   { y: (ZONES.roadLaneDown.y1 + ZONES.roadLaneDown.y2) / 2, dir: 1 }, // 320, вправо
 ];
 
-// Машины: общая физика — здесь, всё видовое (размер, скорость, гавы) — в types
-// (скорая — M5: строка типа + вес + спец-правила «лаять нельзя, −20 очков»).
+// Машины: общая физика — здесь, всё видовое (размер, скорость, гавы) — в types.
 export const CAR = {
   accel: 220, // разгон, px/с²
   decel: 380, // штатное торможение (дистанция/пробка), px/с²
@@ -121,14 +120,42 @@ export const CAR = {
       colors: ['#e8e4da'],
       sprites: ['marshrutka'],
     },
+    // Скорая (game-design §3.2): лай её не останавливает — гав по ней только
+    // штрафует очками (SCORE.ambulanceBark); дети её пропускают сами, потому
+    // что она никогда не 'stopped' (isCarThreat держит canGo = false), а испуг
+    // на неё не срабатывает (emergency-исключение в isCarScare — у игрока нет
+    // контрплея). Физика детей не задета: дети на дороге — препятствия, скорая
+    // тормозит по стоп-точке, как любая машина.
+    ambulance: {
+      w: 72,
+      h: 38,
+      speedMin: 200,
+      speedMax: 200,
+      barksToStop: Infinity,
+      stopIdleDuration: 0,
+      emergency: true,
+      colors: ['#f4f4f2'],
+      sprites: ['ambulance'],
+    },
+  },
+  // Мигалка скорой: два фонаря на световой балке (поперёк крыши у кабины),
+  // мигают попеременно. Позиция — в координатах машины: вперёд по ходу и
+  // в стороны от оси.
+  emergencyLights: {
+    forwardOffset: 9, // балка ближе к кабине: сдвиг от центра по ходу, px
+    sideOffset: 4, // фонари по краям балки: сдвиг поперёк, px
+    radius: 3,
+    glowRadius: 8, // полупрозрачный ореол вокруг горящего фонаря, px
+    hz: 4, // частота переключения красный/синий
+    colors: ['#e63946', '#3a6fd8'],
   },
   // Веса спавна по волнам: строка i — волна i+1, дальше последней — последняя.
   spawnWeights: [
-    { sedan: 1.0, taxi: 0, marshrutka: 0 },
-    { sedan: 0.75, taxi: 0.25, marshrutka: 0 },
-    { sedan: 0.6, taxi: 0.25, marshrutka: 0.15 },
-    { sedan: 0.5, taxi: 0.3, marshrutka: 0.2 },
-    { sedan: 0.4, taxi: 0.35, marshrutka: 0.25 },
+    { sedan: 1.0, taxi: 0, marshrutka: 0, ambulance: 0 },
+    { sedan: 0.75, taxi: 0.25, marshrutka: 0, ambulance: 0 },
+    { sedan: 0.6, taxi: 0.25, marshrutka: 0.15, ambulance: 0 },
+    { sedan: 0.5, taxi: 0.3, marshrutka: 0.2, ambulance: 0 },
+    { sedan: 0.38, taxi: 0.33, marshrutka: 0.22, ambulance: 0.07 },
   ],
 };
 
@@ -169,6 +196,15 @@ export const SCORE = {
   comboThreshold: 3, // столько успешных переходов подряд включают множитель
   comboMultiplier: 2,
   khachapuri: 5, // за съеденный хачапури (без комбо-множителя)
+  ambulanceBark: 20, // штраф за гав по скорой (очки не уходят ниже нуля)
+};
+
+// Всплывающий текст над машиной («−20» за гав по скорой): всплывает и тает.
+export const FLOATER = {
+  font: 'bold 18px system-ui, sans-serif',
+  color: '#e63946',
+  duration: 0.9, // сек жизни
+  rise: 28, // на сколько всплывает за жизнь, px
 };
 
 // Энергия лая (game-design §3.1): тратится гавом, восстанавливается сама и хачапури.
@@ -244,7 +280,19 @@ export const HUD = {
   },
 };
 
-export const STORAGE = { best: 'kupata.best', muted: 'kupata.muted' };
+export const STORAGE = {
+  best: 'kupata.best',
+  muted: 'kupata.muted',
+  lang: 'kupata.lang',
+};
+
+// Мобильное управление: виртуальный джойстик слева + кнопка «ГАВ!» справа
+// (HTML поверх canvas, показываются по pointer: coarse; размеры — style.css).
+// Джойстик цифровой, 8 направлений — на выходе те же {−1, 0, 1}, что у WASD.
+export const TOUCH = {
+  deadZone: 14, // отклонение нуба меньше этого — стоим, px экрана
+  nubTravel: 34, // максимальный визуальный ход нуба от центра базы, px
+};
 
 // Манифест спрайтов (impl-plan 3.1): замена любого файла на PNG — одна строка.
 // Не загрузившийся спрайт не ломает игру: render рисует цветной прямоугольник.
@@ -261,6 +309,7 @@ export const SPRITES = {
   carGray: 'assets/sprites/car-gray.svg',
   taxi: 'assets/sprites/taxi.svg',
   marshrutka: 'assets/sprites/marshrutka.svg',
+  ambulance: 'assets/sprites/ambulance.svg',
   kid1: 'assets/sprites/kid-1.svg',
   kid2: 'assets/sprites/kid-2.svg',
   kid3: 'assets/sprites/kid-3.svg',

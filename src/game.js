@@ -1,5 +1,6 @@
 import {
   LANES, CAR, BARK, KIDS, WAVES, SCORE, GAME, ENERGY, OVERFEED, NPC, DOG,
+  FLOATER,
 } from './config.js';
 import {
   createDog, updateDog, tryBark, barkRadius, clampDogPosition,
@@ -31,6 +32,7 @@ export function createGame() {
     khachapuriTimes: [], // моменты съедения (state.time) для окна перекорма
     khachapuriEaten: 0,
     hearts: [], // эффекты 💖 над съеденным хачапури: { x, y, age }
+    floaters: [], // всплывающие тексты («−20» за гав по скорой): { x, y, age, text }
     paws: GAME.paws,
     score: 0,
     wave: 1,
@@ -61,6 +63,9 @@ export function update(state, input, dt) {
 
   for (const heart of state.hearts) heart.age += dt;
   state.hearts = state.hearts.filter((heart) => heart.age < NPC.heartDuration);
+
+  for (const floater of state.floaters) floater.age += dt;
+  state.floaters = state.floaters.filter((f) => f.age < FLOATER.duration);
 
   if (state.toast !== null) {
     state.toast.age += dt;
@@ -104,6 +109,9 @@ export function update(state, input, dt) {
 // приближаются к Купате (поравнявшиеся/проехавшие не реагируют — в т.ч. нет
 // «клевка» маршрутки и нельзя «освежить» стоянку поравнявшейся машины).
 // Радиус — по энергии ДО списания (barkRadius раньше tryBark).
+// Скорую гав не останавливает — только штраф очками (не чаще раза за гав,
+// даже если скорых в радиусе две); остальные машины того же гава реагируют
+// как обычно.
 function handleBark(state, input) {
   if (!input.consumeBark()) return;
 
@@ -114,10 +122,26 @@ function handleBark(state, input) {
   state.barkRings.push({ x: dog.x, y: dog.y, age: 0, radius });
   state.events.push({ type: 'bark', weak: radius < BARK.radius });
 
+  let penalized = false;
   for (const car of state.cars) {
-    if (isCarApproaching(car, dog.x) && isCarInRadius(car, dog.x, dog.y, radius)) {
-      tryStopByBark(car);
+    if (!isCarApproaching(car, dog.x) || !isCarInRadius(car, dog.x, dog.y, radius)) {
+      continue;
     }
+    if (CAR.types[car.type].emergency) {
+      if (!penalized) {
+        penalized = true;
+        state.score = Math.max(0, state.score - SCORE.ambulanceBark);
+        state.floaters.push({
+          x: car.x,
+          y: car.y - car.h / 2 - 8,
+          age: 0,
+          text: `−${SCORE.ambulanceBark}`,
+        });
+        state.events.push({ type: 'penalty' });
+      }
+      continue;
+    }
+    tryStopByBark(car);
   }
 }
 

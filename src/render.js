@@ -1,8 +1,8 @@
 import {
-  WORLD, ZONES, ZEBRA, BARK, CAR, KIDS, NPC, BUBBLE, COLORS,
+  WORLD, ZONES, ZEBRA, BARK, CAR, KIDS, NPC, BUBBLE, COLORS, FLOATER,
 } from './config.js';
 import { drawHud } from './systems/hud.js';
-import { STRINGS } from './systems/strings.js';
+import { STRINGS } from './systems/i18n.js';
 import { sprites } from './systems/sprites.js';
 import { isCarApproaching, isCarInRadius } from './entities/car.js';
 import { barkRadius } from './entities/dog.js';
@@ -31,6 +31,7 @@ export function render(ctx, state) {
   drawDog(ctx, state);
   drawBarkRings(ctx, state.barkRings);
   drawHearts(ctx, state.hearts);
+  drawFloaters(ctx, state.floaters);
   drawBubbles(ctx, state);
   drawHud(ctx, state);
 }
@@ -62,6 +63,7 @@ function drawCar(ctx, car, state) {
   drawSprite(ctx, car.sprite, car.x, car.y, car.w, car.h, car.dir === -1, car.color);
 
   const spec = CAR.types[car.type];
+  if (spec.emergency) drawEmergencyLights(ctx, car, state.time);
   if (shouldShowBarkPips(car, state.dog)) drawBarkPips(ctx, car);
   if (spec.impatience && car.state === 'stopped' && car.impatienceTimer > 0) {
     drawImpatienceRing(ctx, car, spec.impatience);
@@ -76,11 +78,45 @@ function drawCar(ctx, car, state) {
   ctx.restore();
 }
 
+// Мигалка скорой: два фонаря на световой балке (поперёк крыши у кабины)
+// мигают попеременно красным/синим, вокруг горящего — полупрозрачный ореол.
+// Рисуется поверх спрайта; сдвиг балки — по ходу движения (car.dir).
+function drawEmergencyLights(ctx, car, time) {
+  const lights = CAR.emergencyLights;
+  const phase = Math.floor(time * lights.hz) % 2;
+  const barX = car.x + car.dir * lights.forwardOffset;
+
+  ctx.save();
+  for (let i = 0; i < 2; i++) {
+    const y = car.y + (i === 0 ? -lights.sideOffset : lights.sideOffset);
+    const color = lights.colors[i];
+    const on = i === phase;
+
+    if (on) {
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(barX, y, lights.glowRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha = on ? 1 : 0.45;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(barX, y, lights.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 // Пипсы гавов над машиной, которой нужно > 1 гава: видны после первого гава
 // (весь «клевок» — barksGot сбрасывается только при releaseCar) или пока
 // Купата рядом и машина ещё реагирует на лай. У стоящей не показываем: оба
 // пипса залиты — только шум во время перехода.
 function shouldShowBarkPips(car, dog) {
+  // У скорой barksNeeded = Infinity, но пипсы — телеграф «догавкай», а её
+  // не остановить вовсе (телеграф скорой — мигалка и сирена).
+  if (CAR.types[car.type].emergency) return false;
   if (car.barksNeeded <= 1 || car.state === 'stopped') return false;
   if (car.barksGot > 0) return true;
   return isCarApproaching(car, dog.x)
@@ -248,6 +284,21 @@ function drawHearts(ctx, hearts) {
     const t = heart.age / NPC.heartDuration;
     ctx.globalAlpha = 1 - t;
     ctx.fillText(STRINGS.fx.heart, heart.x, heart.y - NPC.heartRise * t);
+  }
+  ctx.restore();
+}
+
+// Всплывающие тексты («−20» за гав по скорой): всплывают и тают, как 💖.
+function drawFloaters(ctx, floaters) {
+  ctx.save();
+  ctx.font = FLOATER.font;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillStyle = FLOATER.color;
+  for (const floater of floaters) {
+    const t = floater.age / FLOATER.duration;
+    ctx.globalAlpha = 1 - t;
+    ctx.fillText(floater.text, floater.x, floater.y - FLOATER.rise * t);
   }
   ctx.restore();
 }

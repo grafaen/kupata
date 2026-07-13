@@ -11,6 +11,7 @@ export function createAudio() {
   let ctx = null;
   let master = null;
   let muted = readMuted();
+  let siren = null; // { osc, lfo, gain } — двухтоновая петля, пока скорая на экране
 
   function unlock() {
     if (ctx !== null) {
@@ -39,7 +40,42 @@ export function createAudio() {
       case 'yay': return yay(t);
       case 'nyam': return nyam(t);
       case 'wave': return waveJingle(t);
+      case 'penalty': return penalty(t);
     }
+  }
+
+  // Сирена скорой: непрерывная hi-lo (квадратный LFO кидает частоту между
+  // двумя тонами). Не событие, а состояние: main.js каждый кадр выводит
+  // active из «есть ли скорая на экране и идёт ли игра» — пауза, меню и
+  // gameover глушат сирену сами собой. Mute действует через master.
+  function setSiren(active) {
+    if (ctx === null) return; // до первого жеста звука нет вовсе
+    if (active && siren === null) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = 770; // центр между 660 и 880
+      lfo.type = 'square';
+      lfo.frequency.value = 1.4; // переключения hi-lo в секунду
+      lfoGain.gain.value = 110; // размах: 770 ± 110
+      gain.gain.value = 0.05;
+      lfo.connect(lfoGain).connect(osc.frequency);
+      osc.connect(gain).connect(master);
+      osc.start();
+      lfo.start();
+      siren = { osc, lfo, gain };
+    } else if (!active && siren !== null) {
+      siren.osc.stop();
+      siren.lfo.stop();
+      siren = null;
+    }
+  }
+
+  // Штраф (гав по скорой): короткий съезжающий вниз зуммер — «нельзя».
+  function penalty(t) {
+    tone('square', 320, 180, t, 0.22, 0.14);
   }
 
   // Короткий рык: пила съезжает вниз + выдох белого шума через полосовой фильтр.
@@ -127,7 +163,7 @@ export function createAudio() {
     return buffer;
   }
 
-  return { unlock, play, setMuted, isMuted: () => muted };
+  return { unlock, play, setSiren, setMuted, isMuted: () => muted };
 }
 
 // localStorage может быть недоступен (приватный режим) — тогда без сохранения.

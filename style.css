@@ -8,37 +8,110 @@ body {
   background: #14161a;
 }
 
+body {
+  overscroll-behavior: none;
+}
+
 canvas {
   display: block;
   width: 100vw;
   height: 100vh;
+  height: 100dvh; /* мобильные: без прыжков из-за адресной строки */
   object-fit: contain;
   touch-action: none;
 }
 
-/* Кнопка звука: поверх canvas в правом верхнем углу (M — тот же тумблер). */
-#mute-btn {
+/* Кнопки поверх canvas в правом верхнем углу: звук (M) и пауза (P/Esc). */
+#mute-btn,
+#pause-btn {
   position: fixed;
   top: 10px;
-  right: 10px;
   width: 42px;
   height: 42px;
   border: none;
   border-radius: 50%;
   background: rgba(10, 12, 16, 0.35);
+  color: #fff;
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
 }
 
-#mute-btn:hover {
+#mute-btn {
+  right: 10px;
+}
+
+#pause-btn {
+  right: 60px;
+}
+
+#mute-btn:hover,
+#pause-btn:hover {
   background: rgba(10, 12, 16, 0.55);
 }
 
-/* Экраны — HTML-оверлеи поверх canvas (impl-plan 3.3). */
+/* ── Мобильное управление: джойстик слева, «ГАВ!» справа (impl-plan 3.2) ── */
+
+#touch-controls {
+  display: none; /* включается по pointer: coarse ниже */
+}
+
+#joystick {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(10, 12, 16, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#joystick-nub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  pointer-events: none; /* весь ввод ловит база */
+}
+
+#bark-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 32px;
+  width: 96px;
+  height: 96px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(244, 196, 48, 0.85); /* жёлтый лая из палитры */
+  color: #2b2d33;
+  font-family: system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (pointer: coarse) {
+  #touch-controls {
+    display: block;
+  }
+}
+
+/* Экраны — HTML-оверлеи поверх canvas (impl-plan 3.3). Оверлей выше
+   touch-контролов и кнопок HUD: пока открыт экран, они недоступны. */
 .overlay {
   position: fixed;
   inset: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,4 +161,61 @@ canvas {
 
 .card button:hover {
   filter: brightness(1.08);
+}
+
+/* Второстепенные кнопки экранов («Как играть», «В меню», «Назад»…). */
+.card button.secondary {
+  display: block;
+  margin: 10px auto 0;
+  padding: 8px 24px;
+  background: transparent;
+  border: 2px solid #3bb8ae;
+  color: #2b2d33;
+  font-size: 17px;
+}
+
+.card > button {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Меню: Купата на «морской» плашке + переключатель языка. */
+.menu-dog {
+  width: 120px;
+  height: auto;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: #3bb8ae; /* море: белый пёс виден на любом фоне */
+}
+
+.lang-switch {
+  margin: 4px 0 8px;
+}
+
+.lang-switch button {
+  margin: 0 4px;
+  padding: 6px 14px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: rgba(59, 184, 174, 0.15);
+  color: #2b2d33;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.lang-switch button[aria-pressed="true"] {
+  border-color: #3bb8ae;
+  background: rgba(59, 184, 174, 0.35);
+}
+
+.card-howto {
+  max-width: 460px;
+}
+
+.card-howto p {
+  font-size: 15px;
+  text-align: left;
+  margin: 8px 0;
 }

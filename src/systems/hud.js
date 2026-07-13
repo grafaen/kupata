@@ -1,5 +1,5 @@
 import { WORLD, GAME, HUD, ENERGY } from '../config.js';
-import { STRINGS } from './strings.js';
+import { STRINGS } from './i18n.js';
 
 // HUD рисуется на canvas последним слоем: лапки слева, очки+волна по центру,
 // энергия лая справа, тост под ними. Mute — M4.
