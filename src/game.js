@@ -1,6 +1,6 @@
 import {
   LANES, CAR, BARK, KIDS, WAVES, SCORE, GAME, ENERGY, OVERFEED, NPC, DOG,
-  FLOATER,
+  FLOATER, HUD,
 } from './config.js';
 import {
   createDog, updateDog, tryBark, barkRadius, clampDogPosition,
@@ -9,7 +9,7 @@ import {
   createCar, updateCars, tryStopByBark, isCarInRadius, isCarApproaching,
   isCarGone, canSpawnInLane,
   isCarThreat, isCarScare, scareBrake, holdStoppedCars, pickCarType,
-  updateImpatientTaxis,
+  updateImpatientTaxis, computeStopPoints, willStopBeforeZebra,
 } from './entities/car.js';
 import {
   createKidGroup, updateKidGroup, scareKidGroup, kidsOnRoad, isGroupExpired,
@@ -224,11 +224,17 @@ function eatKhachapuri(state) {
 
 // Испуг — одно событие на кадр: все переходящие группы разбегаются,
 // лапка теряется одна, комбо сгорает, виновные машины экстренно тормозят.
+// Хвост очереди, докатывающийся до стоп-точки перед зеброй, не пугает
+// (willStopBeforeZebra): игрок уже остановил колонну — повлиять на доезд
+// хвоста он не может, а детей тот физически не коснётся (плейтест M5).
 function handleScare(state) {
   const crossing = state.kidGroups.filter((group) => group.state === 'crossing');
   if (crossing.length === 0) return;
 
-  const scaryCars = state.cars.filter((car) => isCarScare(car));
+  const stops = computeStopPoints(state.cars, obstaclesFor(state));
+  const scaryCars = state.cars.filter(
+    (car) => isCarScare(car) && !willStopBeforeZebra(car, stops.get(car)),
+  );
   if (scaryCars.length === 0) return;
 
   for (const car of scaryCars) scareBrake(car);
@@ -256,6 +262,23 @@ function scoreCrossing(state, group) {
   state.comboStreak += 1;
   state.successfulCrossings += 1;
   state.events.push({ type: 'yay' });
+
+  // Каждый pawRegenEvery-й успешный переход возвращает лапку (до максимума):
+  // «+🐾» всплывает у ряда лапок HUD, чтобы связь была видна.
+  if (
+    state.successfulCrossings % GAME.pawRegenEvery === 0
+    && state.paws < GAME.paws
+  ) {
+    state.paws += 1;
+    state.floaters.push({
+      x: HUD.margin + (state.paws - 1) * HUD.pawSpacing + HUD.pawRegenFloater.offsetX,
+      y: HUD.margin + HUD.pawRegenFloater.offsetY,
+      age: 0,
+      text: '+🐾',
+      color: '#ffffff',
+    });
+    state.events.push({ type: 'pawRegen' });
+  }
 
   const wave =
     Math.floor(state.successfulCrossings / WAVES.crossingsPerWave) + 1;

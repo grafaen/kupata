@@ -41,6 +41,7 @@ export function createAudio() {
       case 'nyam': return nyam(t);
       case 'wave': return waveJingle(t);
       case 'penalty': return penalty(t);
+      case 'pawRegen': return pawRegen(t);
     }
   }
 
@@ -76,6 +77,13 @@ export function createAudio() {
   // Штраф (гав по скорой): короткий съезжающий вниз зуммер — «нельзя».
   function penalty(t) {
     tone('square', 320, 180, t, 0.22, 0.14);
+  }
+
+  // Вернулась лапка: мягкий колокольчик из двух тонов вверх (тише «Ура!»,
+  // которое звучит в тот же момент за сам переход).
+  function pawRegen(t) {
+    tone('sine', 880, 880, t, 0.12, 0.1);
+    tone('sine', 1318, 1318, t + 0.1, 0.22, 0.1);
   }
 
   // Короткий рык: пила съезжает вниз + выдох белого шума через полосовой фильтр.

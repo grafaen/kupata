@@ -4,6 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <title>Купата — герой Батуми</title>
+  <meta name="description" content="Bark cars to a stop so the kids can cross the road. A free browser game about Kupata, Batumi’s real hero dog.">
+
+  <!-- Превью шаринга (OG статичен, язык — английский; заголовок на странице
+       переключается i18n). og:image — абсолютный URL: скраперы не резолвят
+       относительные пути. -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://qupata.ge/">
+  <meta property="og:title" content="Kupata — Hero of Batumi">
+  <meta property="og:description" content="Bark cars to a stop so the kids can cross the road. A free browser game about Kupata, Batumi’s real hero dog.">
+  <meta property="og:image" content="https://qupata.ge/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- SVG-favicon + PNG (Safari без SVG) + иконка домашнего экрана iOS. -->
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="assets/icon-32.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -31,6 +50,8 @@
       </div>
       <button id="menu-play" type="button" data-i18n="ui.play"></button>
       <button id="menu-howto" type="button" class="secondary" data-i18n="ui.howto"></button>
+      <button id="menu-about" type="button" class="secondary" data-i18n="ui.about"></button>
+      <a class="repo-link" href="https://github.com/grafaen/kupata" target="_blank" rel="noopener" data-i18n="ui.github"></a>
     </div>
   </div>
 
@@ -44,6 +65,26 @@
       <p data-i18n="howto.ambulance"></p>
       <p data-i18n="howto.pause"></p>
       <button id="howto-back" type="button" data-i18n="ui.back"></button>
+    </div>
+  </div>
+
+  <!-- «О Купате» — история настоящего пса (docs/kupata-facts.md). Названия
+       изданий в ссылках — имена собственные, не переводятся (без data-i18n). -->
+  <div id="about" class="overlay hidden">
+    <div class="card card-howto">
+      <h1 data-i18n="ui.about"></h1>
+      <p data-i18n="about.p1"></p>
+      <p data-i18n="about.p2"></p>
+      <p class="cartoon"><a href="https://www.youtube.com/watch?v=PUNFDhJsbKw" target="_blank" rel="noopener" data-i18n="about.cartoon"></a></p>
+      <p class="memorial" data-i18n="about.memory"></p>
+      <p class="sources">
+        <span data-i18n="about.sources"></span>
+        <a href="https://www.rferl.org/a/georgia-batumi-helpful-dog/30393655.html" target="_blank" rel="noopener">RFE/RL</a> ·
+        <a href="https://www.newsgeorgia.ge/umerla-kupata-simvol-batumi-i-samaja-izvestnaja-sobaka-gruzii/" target="_blank" rel="noopener">NewsGeorgia</a> ·
+        <a href="https://www.goodnewsnetwork.org/internet-famous-crossing-guard-dog-presented-with-doghouse/" target="_blank" rel="noopener">Good News Network</a>
+      </p>
+      <button id="about-back" type="button" data-i18n="ui.back"></button>
+      <a class="repo-link" href="https://github.com/grafaen/kupata" target="_blank" rel="noopener" data-i18n="ui.github"></a>
     </div>
   </div>
 

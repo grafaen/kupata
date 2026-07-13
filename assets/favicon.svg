@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Favicon: морда Купаты анфас — белая голова, чёрная «шапка» с белой
+       проточиной и висячие уши, как на спрайте kupata.svg и мурале.
+       Формы крупные: читается в 16 px. -->
+  <!-- висячие уши -->
+  <ellipse cx="4.6" cy="13.5" rx="3.4" ry="7" transform="rotate(14 4.6 13.5)" fill="#1f1f1f"/>
+  <ellipse cx="27.4" cy="13.5" rx="3.4" ry="7" transform="rotate(-14 27.4 13.5)" fill="#1f1f1f"/>
+  <!-- голова -->
+  <circle cx="16" cy="17" r="12.4" fill="#f2efe9"/>
+  <!-- «шапка»: чёрный верх головы -->
+  <path d="M3.8 15 A12.4 12.4 0 0 1 28.2 15 L26 12 Q16 6.5 6 12 Z" fill="#1f1f1f"/>
+  <ellipse cx="16" cy="10" rx="11" ry="5.6" fill="#1f1f1f"/>
+  <!-- белая проточина от лба к носу -->
+  <path d="M14 5 L18 5 L17 15.5 L15 15.5 Z" fill="#f2efe9"/>
+  <!-- глаза -->
+  <circle cx="10.8" cy="17.6" r="1.9" fill="#1f1f1f"/>
+  <circle cx="21.2" cy="17.6" r="1.9" fill="#1f1f1f"/>
+  <!-- морда и нос -->
+  <ellipse cx="16" cy="23" rx="5.6" ry="4.2" fill="#faf8f2"/>
+  <ellipse cx="16" cy="21.6" rx="2.8" ry="2.1" fill="#1a1a1a"/>
+  <!-- улыбка -->
+  <path d="M13.3 25 Q16 27 18.7 25" fill="none" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

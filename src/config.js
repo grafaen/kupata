@@ -187,6 +187,7 @@ export const DANGER_ZONE = {
   x2: ZEBRA.x2 + 140,
   lookahead: 1.5, // машина «доедет до зоны за < столько сек» — уже угроза
   passMargin: 12, // задний край за дальним краем зебры + столько — машина «проехала», px
+  brakeMargin: 10, // стоп-точка не доезжает до зебры на столько — машина «встанет до зебры», px
 };
 
 // Очки (game-design §4).
@@ -260,7 +261,12 @@ export const WAVES = {
   toastDuration: 2.5, // сек жизни тоста «Волна N»
 };
 
-export const GAME = { paws: 3 };
+// Лапки: щедрый запас + восполнение за серию переходов — потеря на испуге
+// прощается, если игрок дальше играет чисто (плейтест M5).
+export const GAME = {
+  paws: 5,
+  pawRegenEvery: 3, // каждый столький успешный переход возвращает лапку (до максимума)
+};
 
 // HUD рисуется на canvas поверх зоны моря (верх поля).
 export const HUD = {
@@ -269,6 +275,8 @@ export const HUD = {
   color: '#ffffff',
   margin: 16,
   toastY: 60,
+  pawSpacing: 30, // шаг ряда лапок по x, px
+  pawRegenFloater: { offsetX: 11, offsetY: 54 }, // «+🐾» под новой лапкой, от HUD.margin
   energy: {
     width: 150, // полоса энергии справа, px
     height: 14,

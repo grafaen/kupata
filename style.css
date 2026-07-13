@@ -212,10 +212,44 @@ canvas {
 
 .card-howto {
   max-width: 460px;
+  max-height: 86vh; /* «О Купате» длиннее экрана телефона в ландшафте */
+  max-height: 86dvh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .card-howto p {
   font-size: 15px;
   text-align: left;
   margin: 8px 0;
+}
+
+/* «О Купате»: мультфильм, строка памяти и ссылки на источники. */
+.card .cartoon {
+  text-align: center;
+  font-weight: 700;
+}
+
+.card .memorial {
+  margin-top: 14px;
+  font-style: italic;
+  text-align: center;
+}
+
+.card .sources {
+  font-size: 13px;
+  color: rgba(43, 45, 51, 0.75);
+}
+
+.card a {
+  color: #1d7a72; /* тёмное море: читается на плашке-набережной */
+}
+
+/* Ссылка на репозиторий внизу карточки — приглушённая, не спорит с кнопками. */
+.repo-link {
+  display: block;
+  margin-top: 16px;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  color: rgba(43, 45, 51, 0.65);
 }

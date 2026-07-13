@@ -248,6 +248,38 @@ export function isCarScare(car) {
     && carIntersectsZone(car) && !hasPassedZebra(car);
 }
 
+// Стоп-точки всех машин той же лидер-логикой, что updateCars (сортировка
+// полосы + stopPointFor), — для handleScare, который решает ДО updateCars.
+export function computeStopPoints(cars, obstacles) {
+  const stops = new Map();
+
+  for (let laneIndex = 0; laneIndex < LANES.length; laneIndex++) {
+    const { dir } = LANES[laneIndex];
+    const laneCars = cars.filter((car) => car.lane === laneIndex);
+    laneCars.sort((a, b) => (b.x - a.x) * dir);
+
+    for (let i = 0; i < laneCars.length; i++) {
+      const car = laneCars[i];
+      stops.set(car, stopPointFor(car, laneCars[i - 1] ?? null, obstacles));
+    }
+  }
+
+  return stops;
+}
+
+// Хвост очереди не пугает: машина, чья стоп-точка гарантирует остановку до
+// зебры (перед не доезжает brakeMargin), детей коснуться не может — updateCar
+// не пересекает стоп-точку при любом dt. Машина, тормозящая за РЕБЁНКОМ на
+// зебре, сюда не попадает (её стоп-точка на самой зебре) — пугает честно:
+// её игрок обязан был облаять.
+export function willStopBeforeZebra(car, stopX) {
+  if (stopX === null || stopX === undefined) return false;
+  const frontAtStop = stopX + car.dir * (car.w / 2);
+  return car.dir === 1
+    ? frontAtStop < ZEBRA.x1 - DANGER_ZONE.brakeMargin
+    : frontAtStop > ZEBRA.x2 + DANGER_ZONE.brakeMargin;
+}
+
 // Попадание машины в радиус лая: окружность против прямоугольника
 // (ближайшая точка корпуса к центру собаки).
 export function isCarInRadius(car, cx, cy, r) {

@@ -23,11 +23,12 @@ window.addEventListener('pointerdown', () => audio.unlock(), { once: true });
 const overlays = {
   menu: document.getElementById('menu'),
   howto: document.getElementById('howto'),
+  about: document.getElementById('about'),
   paused: document.getElementById('pause'),
   gameover: document.getElementById('gameover'),
 };
 
-let screen = 'menu'; // 'menu' | 'playing' | 'paused' | 'gameover'
+let screen = 'menu'; // 'menu' | 'playing' | 'paused' | 'gameover' | 'howto' | 'about'
 let state = null;
 
 function setScreen(name) {
@@ -94,6 +95,8 @@ function onClick(id, handler) {
 onClick('menu-play', startGame);
 onClick('menu-howto', () => setScreen('howto'));
 onClick('howto-back', () => setScreen('menu'));
+onClick('menu-about', () => setScreen('about'));
+onClick('about-back', () => setScreen('menu'));
 onClick('pause-resume', togglePause);
 onClick('pause-restart', startGame);
 onClick('pause-menu', toMenu);

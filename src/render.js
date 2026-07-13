@@ -294,10 +294,10 @@ function drawFloaters(ctx, floaters) {
   ctx.font = FLOATER.font;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
-  ctx.fillStyle = FLOATER.color;
   for (const floater of floaters) {
     const t = floater.age / FLOATER.duration;
     ctx.globalAlpha = 1 - t;
+    ctx.fillStyle = floater.color ?? FLOATER.color;
     ctx.fillText(floater.text, floater.x, floater.y - FLOATER.rise * t);
   }
   ctx.restore();

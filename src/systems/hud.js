@@ -11,7 +11,7 @@ export function drawHud(ctx, state) {
 
   for (let i = 0; i < GAME.paws; i++) {
     ctx.globalAlpha = i < state.paws ? 1 : 0.25;
-    ctx.fillText('🐾', HUD.margin + i * 30, HUD.margin);
+    ctx.fillText('🐾', HUD.margin + i * HUD.pawSpacing, HUD.margin);
   }
   ctx.globalAlpha = 1;
 
