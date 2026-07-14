@@ -146,8 +146,8 @@ function handleBark(state, input) {
 }
 
 // Контакт Купаты с машиной (после updateCars — по финальным позициям кадра).
-// Движущаяся машина «наезжает»: экстренно тормозит с «БИИП!», Купату
-// отбрасывает и оглушает («Ой!», лапки не тратятся — game-design §3.1);
+// Движущаяся машина «наезжает» (game-design §3.1, решение v2): экстренно
+// тормозит с «БИИП!», Купату отбрасывает и оглушает («Ой!») и стоит −1 лапка;
 // стоящая — просто твёрдая: внутрь не зайти.
 function handleDogCarContact(state) {
   const { dog } = state;
@@ -163,6 +163,8 @@ function handleDogCarContact(state) {
     if (overlapX < overlapY) pushX = dog.x < car.x ? -overlapX : overlapX;
     else pushY = dog.y < car.y ? -overlapY : overlapY;
 
+    // stunTimer > 0 гейтит повторный «наезд»: пока Купата оглушён после удара,
+    // та же (или следующая) машина второй лапки в этот стан не отнимает.
     const hit = car.speed > DOG.contactSpeed && dog.stunTimer <= 0;
     if (hit) {
       pushX += Math.sign(pushX) * DOG.knockback;
@@ -170,6 +172,23 @@ function handleDogCarContact(state) {
       dog.stunTimer = DOG.stunDuration;
       scareBrake(car);
       state.events.push({ type: 'honk' });
+
+      // −1 лапка за наезд. Комбо НЕ сбрасываем: наезд не срывает переход детей
+      // (комбо жжёт только испуг). Красный «−🐾» у ряда лапок HUD — зеркало
+      // «+🐾» из scoreCrossing: после декремента state.paws — индекс потерянной
+      // лапки; без color → дефолтный красный FLOATER.color (контраст с белым «+🐾»).
+      state.paws -= 1;
+      state.floaters.push({
+        x: HUD.margin + state.paws * HUD.pawSpacing + HUD.pawRegenFloater.offsetX,
+        y: HUD.margin + HUD.pawRegenFloater.offsetY,
+        age: 0,
+        text: '−🐾',
+      });
+      if (state.paws <= 0) {
+        state.paws = 0;
+        state.status = 'gameover';
+        state.gameoverReason = 'paws';
+      }
     }
 
     dog.x += pushX;

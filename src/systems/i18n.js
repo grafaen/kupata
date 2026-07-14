@@ -38,6 +38,7 @@ const ru = {
   },
   howto: {
     goal: 'Останавливай машины лаем, чтобы дети перешли дорогу. Испуганные дети — минус лапка.',
+    hit: 'Под машину не попадай — тоже минус лапка.',
     move: 'Движение — стрелки / WASD или джойстик.',
     bark: 'Гав — пробел или кнопка «ГАВ!». Действует только на приближающиеся машины.',
     energy: 'Лай тратит энергию, хачапури её восполняет. Энергия на нуле — конец игры.',
@@ -104,6 +105,7 @@ const en = {
   },
   howto: {
     goal: 'Bark to stop the cars so the kids can cross. Scared kids cost a paw.',
+    hit: "Don't get hit by a car — that also costs a paw.",
     move: 'Move — arrows / WASD or the joystick.',
     bark: 'Bark — Space or the WOOF! button. Only approaching cars react.',
     energy: 'Barking drains energy, khachapuri restores it. Zero energy ends the game.',
@@ -170,6 +172,7 @@ const ka = {
   },
   howto: {
     goal: 'გააჩერე მანქანები ყეფვით, რომ ბავშვებმა გზა გადაკვეთონ. შეშინებული ბავშვები — მინუს თათი.',
+    hit: 'მანქანის ქვეშ ნუ მოყვები — ესეც მინუს თათია.', // TODO(ka)
     move: 'მოძრაობა — ისრები / WASD ან ჯოისტიკი.',
     bark: 'ყეფა — Space ან ღილაკი «ჰავ!». მოქმედებს მხოლოდ მოახლოებულ მანქანებზე.',
     energy: 'ყეფა ხარჯავს ენერგიას, ხაჭაპური აღადგენს. ნულ ენერგიაზე თამაში მთავრდება.',
