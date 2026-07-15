@@ -28,6 +28,8 @@ const ru = {
     again: 'Ещё раз',
     about: 'О Купате',
     github: 'Исходники и PR — на GitHub',
+    records: 'Рекорды',
+    namePlaceholder: 'Твоё имя — для таблицы рекордов',
   },
   about: {
     p1: 'Купата — настоящий пёс, живший у батумского бульвара. Каждый день он выбегал к пешеходному переходу, лаял на машины и провожал детей из детского сада через дорогу — как настоящий регулировщик.',
@@ -95,6 +97,8 @@ const en = {
     again: 'Play again',
     about: 'About Kupata',
     github: 'Source & PRs on GitHub',
+    records: 'Records',
+    namePlaceholder: 'Your name — for the leaderboard',
   },
   about: {
     p1: 'Kupata was a real dog who lived by the Batumi seaside boulevard. Every day he ran out to the pedestrian crossing, barked at the cars and walked kindergarten kids across the road — a true crossing guard.',
@@ -162,6 +166,8 @@ const ka = {
     again: 'კიდევ ერთხელ',
     about: 'კუპატას შესახებ',
     github: 'წყარო კოდი და PR — GitHub-ზე',
+    records: 'რეკორდები', // TODO(ka)
+    namePlaceholder: 'შენი სახელი — რეკორდების ცხრილისთვის', // TODO(ka)
   },
   about: {
     p1: 'კუპატა ნამდვილი ძაღლი იყო, ბათუმის ბულვართან ცხოვრობდა. ყოველდღე გარბოდა ზებრასთან, უყეფდა მანქანებს და საბავშვო ბაღის ბავშვებს გზაზე გადაჰყავდა — ნამდვილი რეგულირებელივით.',

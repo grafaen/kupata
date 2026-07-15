@@ -289,11 +289,37 @@ export const HUD = {
   },
 };
 
+// Панель топ-10 глобальных рекордов: правый нижний угол поля, зона bottomDecor
+// (рисуется на canvas — systems/topPanel.js). Высота от числа строк:
+// padY·2 + titleGap + 10·rowHeight = 187 px — целиком внутри зоны (y 441…628).
+export const TOP_PANEL = {
+  width: 200,
+  margin: 12, // отступ от правого и нижнего краёв поля, px
+  padX: 12,
+  padY: 9,
+  radius: 10,
+  titleFont: 'bold 14px system-ui, sans-serif',
+  rowFont: '13px system-ui, sans-serif',
+  titleGap: 19, // высота строки заголовка, px
+  rowHeight: 15,
+  bg: 'rgba(10, 12, 16, 0.35)', // тон кнопок звука/паузы
+  color: '#ffffff',
+  meBg: 'rgba(59, 184, 174, 0.55)', // плашка своей строки: тон моря
+  meInset: 6, // отступ плашки от краёв панели, px
+  meRadius: 4,
+};
+
 export const STORAGE = {
   best: 'kupata.best',
   muted: 'kupata.muted',
   lang: 'kupata.lang',
+  name: 'kupata.name', // имя игрока для таблицы рекордов
 };
+
+// Бэкенд рекордов: Cloudflare Worker + KV на api.qupata.ge (деплой — vpn_pulumi).
+// Весь сетевой код (systems/leaderboard.js) при любой ошибке возвращает null:
+// недоступный API не ломает игру. Пустой base → фича рекордов выключена целиком.
+export const API = { base: 'https://api.qupata.ge', timeoutMs: 4000 };
 
 // Мобильное управление: виртуальный джойстик слева + кнопка «ГАВ!» справа
 // (HTML поверх canvas, показываются по pointer: coarse; размеры — style.css).

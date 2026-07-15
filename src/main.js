@@ -5,6 +5,8 @@ import { createGame, update } from './game.js';
 import { STRINGS, setLanguage, currentLanguage, LANGUAGES } from './systems/i18n.js';
 import { loadSprites } from './systems/sprites.js';
 import { createAudio } from './systems/audio.js';
+import { fetchTop, submitScore } from './systems/leaderboard.js';
+import { setTop } from './systems/topPanel.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -42,6 +44,10 @@ function setScreen(name) {
 function startGame() {
   state = createGame();
   setScreen('playing');
+  // Свежий топ-10 для панели в углу поля — на каждый старт (fire-and-forget):
+  // fetchTop не кидает, null просто прячет панель. Заодно сбрасывается
+  // подсветка своей строки с прошлой партии (setTop без rank).
+  fetchTop(10).then(setTop);
 }
 
 function togglePause() {
@@ -64,7 +70,10 @@ document.addEventListener('visibilitychange', () => {
 function applyTexts() {
   for (const el of document.querySelectorAll('[data-i18n]')) {
     const [section, key] = el.dataset.i18n.split('.');
-    el.textContent = STRINGS[section][key];
+    const text = STRINGS[section][key];
+    // Поле имени — placeholder; остальным элементам — обычный текст.
+    if (el.tagName === 'INPUT') el.placeholder = text;
+    else el.textContent = text;
   }
   for (const button of document.querySelectorAll('.lang-switch button')) {
     button.setAttribute(
@@ -126,15 +135,32 @@ input.bindTouchControls({
   barkButton: document.getElementById('bark-btn'),
 });
 
-// Поле видно сразу под меню; «Играть» ждёт загрузки спрайтов (локальные SVG —
-// мгновенно; любой пропавший файл просто заменяется прямоугольником).
+// Имя игрока для таблицы рекордов (до 12 символов, localStorage): префилл при
+// старте, сохранение на вводе. Имя обязательно — без него «Играть» неактивна,
+// поэтому результат после партии записывается всегда.
+const nameInput = document.getElementById('player-name');
+nameInput.value = readName();
+nameInput.addEventListener('input', () => {
+  writeName(nameInput.value.trim());
+  updatePlayButton();
+});
+
+// Поле видно сразу под меню; «Играть» ждёт и загрузки спрайтов (локальные SVG —
+// мгновенно; любой пропавший файл просто заменяется прямоугольником), и
+// непустого имени.
 applyTexts();
 render(ctx, null);
 const playButton = document.getElementById('menu-play');
-playButton.disabled = true;
+let spritesReady = false;
+updatePlayButton();
 loadSprites().then(() => {
-  playButton.disabled = false;
+  spritesReady = true;
+  updatePlayButton();
 });
+
+function updatePlayButton() {
+  playButton.disabled = !spritesReady || nameInput.value.trim() === '';
+}
 
 let last = performance.now();
 
@@ -156,6 +182,7 @@ function frame(now) {
     if (state.status === 'gameover') {
       fillGameOver();
       setScreen('gameover');
+      submitResult();
     }
   }
 
@@ -207,6 +234,36 @@ function writeBest(value) {
   } catch {
     // рекорд не сохранится — не критично
   }
+}
+
+function readName() {
+  try {
+    return localStorage.getItem(STORAGE.name) || '';
+  } catch {
+    return '';
+  }
+}
+
+function writeName(value) {
+  try {
+    localStorage.setItem(STORAGE.name, value);
+  } catch {
+    // имя не сохранится — не критично
+  }
+}
+
+// На game over — тихо отправляем результат; ответ воркера несёт свежий топ-10
+// и место игрока (rank) — обновляем панель на поле, своя строка подсветится.
+// Сетевая ошибка → null → панель просто не обновится, игра идёт как прежде.
+async function submitResult() {
+  const result = await submitScore({
+    name: nameInput.value.trim(),
+    score: state.score,
+    wave: state.wave,
+    crossings: state.successfulCrossings,
+  });
+  if (result === null || !Array.isArray(result.top)) return;
+  setTop(result.top, result.rank);
 }
 
 requestAnimationFrame(frame);

@@ -21,6 +21,9 @@ export function createInput(target = window) {
   let touchBark = false;
 
   target.addEventListener('keydown', (e) => {
+    // Ввод в поле имени не должен дёргать игру: пробел=лай, M=mute, P=пауза,
+    // стрелки=движение. Любой <input> в фокусе — событие не наше.
+    if (e.target instanceof HTMLInputElement) return;
     pressed.add(e.code);
     if (!e.repeat) {
       justPressed.add(e.code);
@@ -31,6 +34,7 @@ export function createInput(target = window) {
   });
 
   target.addEventListener('keyup', (e) => {
+    if (e.target instanceof HTMLInputElement) return;
     pressed.delete(e.code);
   });
 
