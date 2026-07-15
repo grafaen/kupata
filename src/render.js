@@ -2,6 +2,7 @@ import {
   WORLD, ZONES, ZEBRA, BARK, CAR, KIDS, NPC, BUBBLE, COLORS, FLOATER,
 } from './config.js';
 import { drawHud } from './systems/hud.js';
+import { drawTopPanel } from './systems/topPanel.js';
 import { STRINGS } from './systems/i18n.js';
 import { sprites } from './systems/sprites.js';
 import { isCarApproaching, isCarInRadius } from './entities/car.js';
@@ -9,7 +10,8 @@ import { barkRadius } from './entities/dog.js';
 
 // Полная перерисовка поля каждый кадр. Слои строго в порядке:
 // фон (заливки зон → SVG-панорамы) → тротуары → дорога → разметка → зебра →
-// машины → дети → житель → Купата → эффекты (кольца, 💖, «!») → пузыри → HUD.
+// машины → дети → житель → Купата → эффекты (кольца, 💖, «!») → пузыри → HUD →
+// панель топ-10.
 // Любой не загрузившийся спрайт рисуется цветным прямоугольником — игра
 // работает и без графики. state может быть null (до старта) — только поле.
 export function render(ctx, state) {
@@ -34,6 +36,7 @@ export function render(ctx, state) {
   drawFloaters(ctx, state.floaters);
   drawBubbles(ctx, state);
   drawHud(ctx, state);
+  drawTopPanel(ctx);
 }
 
 // Спрайт по имени из манифеста; нет — прямоугольник-заглушка цветом fallback.
