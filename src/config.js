@@ -321,11 +321,12 @@ export const STORAGE = {
 // недоступный API не ломает игру. Пустой base → фича рекордов выключена целиком.
 export const API = { base: 'https://api.qupata.ge', timeoutMs: 4000 };
 
-// Счётчик посетителей (GoatCounter, implementation-plan-v2 §5). Пустой code →
-// фича выключена целиком (ни скрипта учёта, ни «👀 N» в меню). После
-// регистрации сайта вписать код (kupata → kupata.goatcounter.com) и включить
-// в настройках GoatCounter «Allow adding visitor counts on your website».
-export const GOATCOUNTER = { code: '', timeoutMs: 4000 };
+// Счётчик посетителей (GoatCounter, implementation-plan-v2 §5) на кастомном
+// домене stats.qupata.ge (CNAME → yacudzer.goatcounter.com, DNS — в Pulumi).
+// Пустой base → фича выключена целиком (ни скрипта учёта, ни «👀 N» в меню).
+// В настройках GoatCounter должны быть: Custom domain = stats.qupata.ge и
+// «Allow adding visitor counts on your website» (иначе TOTAL.json → 403).
+export const GOATCOUNTER = { base: 'https://stats.qupata.ge', timeoutMs: 4000 };
 
 // Мобильное управление: виртуальный джойстик слева + кнопка «ГАВ!» справа
 // (HTML поверх canvas, показываются по pointer: coarse; размеры — style.css).

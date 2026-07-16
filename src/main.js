@@ -163,16 +163,18 @@ function updatePlayButton() {
 }
 
 // ── Счётчик посетителей (GoatCounter, impl-plan-v2 §5) ──
-// Пустой GOATCOUNTER.code → фича выключена: ни скрипта учёта, ни «👀 N».
-// Скрипт инъектируется отсюда (а не статическим тегом), чтобы код сайта
+// Пустой GOATCOUNTER.base → фича выключена: ни скрипта учёта, ни «👀 N».
+// Скрипт инъектируется отсюда (а не статическим тегом), чтобы адрес счётчика
 // правился в одном месте — config.js; count.js сам не считает localhost.
+// Сам count.js — только с gc.zgo.at (на доменах сайтов GoatCounter его не
+// отдаёт, 404), а эндпоинт учёта и TOTAL.json — с кастомного домена (base).
 // Показ числа — как весь сетевой код (leaderboard.js): любая ошибка (офлайн,
 // не-200, битый JSON, выключенный счётчик-JSON) тихо оставляет строку скрытой.
-if (GOATCOUNTER.code) {
+if (GOATCOUNTER.base) {
   const counterScript = document.createElement('script');
   counterScript.async = true;
   counterScript.src = 'https://gc.zgo.at/count.js';
-  counterScript.dataset.goatcounter = `https://${GOATCOUNTER.code}.goatcounter.com/count`;
+  counterScript.dataset.goatcounter = `${GOATCOUNTER.base}/count`;
   document.body.append(counterScript);
   showVisits();
 }
@@ -181,10 +183,9 @@ async function showVisits() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), GOATCOUNTER.timeoutMs);
   try {
-    const res = await fetch(
-      `https://${GOATCOUNTER.code}.goatcounter.com/counter/TOTAL.json`,
-      { signal: controller.signal },
-    );
+    const res = await fetch(`${GOATCOUNTER.base}/counter/TOTAL.json`, {
+      signal: controller.signal,
+    });
     if (!res.ok) return;
     const data = await res.json();
     if (!data || data.count == null) return; // неожиданная форма — прячем
