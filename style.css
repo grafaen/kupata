@@ -254,6 +254,14 @@ canvas {
   color: rgba(43, 45, 51, 0.65);
 }
 
+/* Счётчик посетителей «👀 N» под ссылкой на репо — в том же приглушённом тоне. */
+.visits {
+  margin: 8px 0 0;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  color: rgba(43, 45, 51, 0.65);
+}
+
 /* Поле имени в меню — палитра кнопок, по центру. */
 #player-name {
   display: block;

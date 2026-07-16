@@ -1,4 +1,4 @@
-import { MAX_DT, STORAGE, CAR } from './config.js';
+import { MAX_DT, STORAGE, CAR, GOATCOUNTER } from './config.js';
 import { render } from './render.js';
 import { createInput } from './systems/input.js';
 import { createGame, update } from './game.js';
@@ -160,6 +160,42 @@ loadSprites().then(() => {
 
 function updatePlayButton() {
   playButton.disabled = !spritesReady || nameInput.value.trim() === '';
+}
+
+// ── Счётчик посетителей (GoatCounter, impl-plan-v2 §5) ──
+// Пустой GOATCOUNTER.code → фича выключена: ни скрипта учёта, ни «👀 N».
+// Скрипт инъектируется отсюда (а не статическим тегом), чтобы код сайта
+// правился в одном месте — config.js; count.js сам не считает localhost.
+// Показ числа — как весь сетевой код (leaderboard.js): любая ошибка (офлайн,
+// не-200, битый JSON, выключенный счётчик-JSON) тихо оставляет строку скрытой.
+if (GOATCOUNTER.code) {
+  const counterScript = document.createElement('script');
+  counterScript.async = true;
+  counterScript.src = 'https://gc.zgo.at/count.js';
+  counterScript.dataset.goatcounter = `https://${GOATCOUNTER.code}.goatcounter.com/count`;
+  document.body.append(counterScript);
+  showVisits();
+}
+
+async function showVisits() {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GOATCOUNTER.timeoutMs);
+  try {
+    const res = await fetch(
+      `https://${GOATCOUNTER.code}.goatcounter.com/counter/TOTAL.json`,
+      { signal: controller.signal },
+    );
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || data.count == null) return; // неожиданная форма — прячем
+    const visitsEl = document.getElementById('visits');
+    visitsEl.textContent = `👀 ${data.count}`; // строка уже отформатирована
+    visitsEl.classList.remove('hidden');
+  } catch {
+    // офлайн, таймаут (abort), битый JSON — строка остаётся скрытой
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 let last = performance.now();
